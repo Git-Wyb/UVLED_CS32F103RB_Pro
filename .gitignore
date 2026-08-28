@@ -1,0 +1,8 @@
+Objects/*.crf
+Objects/*.d
+Objects/*.o
+Objects/*.axf
+Objects/*.htm
+Objects/*.lnp
+Objects/*.dep
+Objects/lst
