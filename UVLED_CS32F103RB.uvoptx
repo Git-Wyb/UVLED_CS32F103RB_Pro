@@ -347,6 +347,18 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
+      <PathWithFileName>.\USER\src\UVLED.c</PathWithFileName>
+      <FilenameWithoutPath>UVLED.c</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>1</GroupNumber>
+      <FileNumber>11</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
       <PathWithFileName>.\USER\src\Application.c</PathWithFileName>
       <FilenameWithoutPath>Application.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>

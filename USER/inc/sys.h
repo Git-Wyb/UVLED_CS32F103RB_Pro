@@ -12,6 +12,8 @@ typedef signed int s32;
 typedef unsigned int u32;
 typedef float f32;
 
+#define CHNUM 4
+
 typedef union{
     u8 Flag;
     struct
@@ -33,8 +35,8 @@ typedef union{
     {
         u8 Up : 1;
         u8 Down : 1;
-        u8 Left : 1;
-        u8 Right : 1;
+        u8 Bk : 1;
+        u8 Fw : 1;
         u8 Set : 1;
         u8 Mode : 1;
         u8 Ch : 1;
@@ -51,6 +53,16 @@ typedef struct{
     u8 point2;
 }NUMSTU;
 
+typedef struct{
+    NUMSTU Cumulative_Time;
+    u8 Uvch;
+    u32 Time;
+    u8 Level;
+    u8 Uvon;
+    u8 Error;
+    u8 Option;
+}CH_STU;
+
 extern KEYSTU KeySta;
 extern u16 time_ms;
 extern u16 time_10ms;
@@ -58,5 +70,7 @@ extern u16 time_keyscan;
 extern u8 keysta_last;
 extern KEYSTU KeyStaNow;
 extern NUMSTU UV_Time[4];
+extern CH_STU PHY_CH[CHNUM];
+void Init_uvch(void);
 
 #endif

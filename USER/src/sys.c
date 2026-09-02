@@ -12,9 +12,19 @@ KEYSTU KeySta = {0};
 KEYSTU KeyStaNow = {0};
 u8 keysta_last = 0;
 NUMSTU UV_Time[4] = {0};
+CH_STU PHY_CH[CHNUM] = {0};
 
 //system_clock = 72MHz.
 void RCC_Configuration(void)
 {
     //SystemInit();
 }
+
+void Init_uvch(void)
+{
+    PHY_CH[0].Uvch = 1;
+    PHY_CH[1].Uvch = 2;
+    PHY_CH[2].Uvch = 3;
+    PHY_CH[3].Uvch = 4;
+}
+

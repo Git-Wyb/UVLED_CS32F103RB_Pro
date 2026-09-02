@@ -6,7 +6,11 @@
 #include "cs32f10x_misc.h"
 #include "cs32f10x_tim.h"
 #include "cs32f10x_gpio.h"
+#include "TM1639.h"
 
+u16 timer_ch_buff[] = {GPIO_PIN_8,GPIO_PIN_9,GPIO_PIN_10,GPIO_PIN_11};
+
+//f = 100K
 u16 pwm_buf[100] = {7,   14, 22, 29, 36, 43, 50, 58, 65, 72,
                     79,  86, 94,101,108,115,122,130,137,144,
                     151,158,166,173,180,187,194,202,209,216,
@@ -125,6 +129,25 @@ void Bueezr_Switch(enable_state_t sta)
     }
 }
 
+void timer1_channel_gpiomode(u8 chn,u8 type, u8 lev)
+{
+    if(chn > CHNUM-1) return;
+    
+    if(type == 0) //timer channel
+    {
+        gpio_mode_config(GPIOA, timer_ch_buff[chn], GPIO_MODE_OUT_AFPP(GPIO_SPEED_HIGH));
+    }
+    else //gpio
+    {
+        if(PHY_CH[chn].Option == 1)
+        {
+            gpio_mode_config(GPIOA, timer_ch_buff[chn], GPIO_MODE_OUT_PP(GPIO_SPEED_HIGH));
+            if(lev == 0) __GPIO_PIN_RESET(GPIOA,timer_ch_buff[chn]);
+            else         __GPIO_PIN_SET(GPIOA,timer_ch_buff[chn]);
+        }
+    }
+}
+
 u16 arr_period = 0;
 /* UV LED CH1 - CH4: PA8 - PA11: TIM1 -> CH1 - CH4*/
 void Init_Timer1(u8 fkhz)
@@ -186,10 +209,11 @@ void Init_Timer1(u8 fkhz)
     tim_chcc_enable_ctrl(TIM1,TIM_CHANNEL_4,DISABLE);
 }
 
-void tim_pwm_output_enable_ctrl(tim_reg_t* ptr_timer, uint16_t channel, enable_state_t onoff)
+void tim_pwm_output_enable_ctrl(tim_reg_t* ptr_timer, uint16_t channel, u8 onoff)
 {
     uint16_t temp = 0;
-
+    if(onoff > 1) onoff = 1;
+    
     temp =  (uint16_t)(0x0001 << (channel * 4));
 
     /* clear the CHxCCEN bit */
@@ -197,12 +221,56 @@ void tim_pwm_output_enable_ctrl(tim_reg_t* ptr_timer, uint16_t channel, enable_s
 
     /* config CHxCCEN bit */ 
     ptr_timer->CCCTR |=  (uint16_t)(onoff << (channel * 4));
-
 }
 
-void UV_LED_Switch(CH_ENUM channel, enable_state_t onoff)
+void UV_LED_Switch(void)
 {
-    if(channel == TIM_CHANNEL_ALL)
+    u8 channel = 0;
+    
+    for(channel = 0; channel < CHNUM; channel++)
+    {
+        if(PHY_CH[channel].Option == 1)
+        {
+            if(PHY_CH[channel].Uvon == 0) PHY_CH[channel].Uvon = 1;
+            else PHY_CH[channel].Uvon = 0;
+            CH_LED_switch(channel, PHY_CH[channel].Error, PHY_CH[channel].Uvon);
+            
+            if(PHY_CH[channel].Error == 1) PHY_CH[channel].Uvon = 0;
+            
+            if(PHY_CH[channel].Uvon == 0) //uv led off
+            {
+                timer1_channel_gpiomode(channel,1,0);
+            }
+            else //uv led on
+            {
+                if(PHY_CH[channel].Level == 100) 
+                {
+                    timer1_channel_gpiomode(channel,1,PHY_CH[channel].Level);
+                }
+                else
+                {
+                    timer1_channel_gpiomode(channel,0,0);
+                    tim_pwm_output_enable_ctrl(TIM1,channel,PHY_CH[channel].Uvon);
+                }
+            }
+            
+        }
+    }
+    /*
+    if(onoff > 1) onoff = 1;
+    if(channel > CHNUM) return;
+    if(PHY_CH[channel].Level == 0 || PHY_CH[channel].Level == 100)
+    {
+        if(channel == UVLED_CH_ALL)
+        {
+            timer1_channel_gpiomode(UVLED_CH_1,1,PHY_CH[UVLED_CH_1].Level);
+            timer1_channel_gpiomode(UVLED_CH_2,1,PHY_CH[UVLED_CH_2].Level);
+            timer1_channel_gpiomode(UVLED_CH_3,1,PHY_CH[UVLED_CH_3].Level);
+            timer1_channel_gpiomode(UVLED_CH_4,1,PHY_CH[UVLED_CH_4].Level);
+        }
+        else timer1_channel_gpiomode(channel,1,PHY_CH[channel].Level);
+    }  
+    else if(channel == UVLED_CH_ALL)
     {
         tim_pwm_output_enable_ctrl(TIM1,TIM_CHANNEL_1,onoff);
         tim_pwm_output_enable_ctrl(TIM1,TIM_CHANNEL_2,onoff);
@@ -210,19 +278,57 @@ void UV_LED_Switch(CH_ENUM channel, enable_state_t onoff)
         tim_pwm_output_enable_ctrl(TIM1,TIM_CHANNEL_4,onoff);
     }
     else tim_pwm_output_enable_ctrl(TIM1,channel,onoff);
+    */
 }
  
+#if 0
 void UV_LED_PwmSet(CH_ENUM channel, u8 pwm)
 {
     if(pwm > 100) pwm = 100;
-    //if(pwm == 0) pwm = 1;
+    if(pwm == 0) pwm = 1;
+    if(channel > CHNUM) return;
+    
     if(channel == TIM_CHANNEL_ALL)
     {
+        PHY_CH[TIM_CHANNEL_1].Level = pwm;
+        PHY_CH[TIM_CHANNEL_2].Level = pwm;
+        PHY_CH[TIM_CHANNEL_3].Level = pwm;
+        PHY_CH[TIM_CHANNEL_4].Level = pwm;
         TIM1->CHXCCVAL[TIM_CHANNEL_1] = (pwm * (arr_period / 100));
         TIM1->CHXCCVAL[TIM_CHANNEL_2] = (pwm * (arr_period / 100));
         TIM1->CHXCCVAL[TIM_CHANNEL_3] = (pwm * (arr_period / 100));
         TIM1->CHXCCVAL[TIM_CHANNEL_4] = (pwm * (arr_period / 100));
     }
-    else TIM1->CHXCCVAL[channel] = (pwm * (arr_period / 100));
+    else 
+    {
+        PHY_CH[channel].Level = pwm;
+        TIM1->CHXCCVAL[channel] = (pwm * (arr_period / 100));
+    }
 }
+
+#else
+void UV_LED_PwmSet(CH_ENUM channel, u8 pwm)
+{
+    if(pwm > 100) pwm = 100;
+    if(pwm == 0) pwm = 1;
+    if(channel > CHNUM) return;
+    
+    if(channel == UVLED_CH_ALL)
+    {
+        PHY_CH[TIM_CHANNEL_1].Level = pwm;
+        PHY_CH[TIM_CHANNEL_2].Level = pwm;
+        PHY_CH[TIM_CHANNEL_3].Level = pwm;
+        PHY_CH[TIM_CHANNEL_4].Level = pwm;
+        TIM1->CHXCCVAL[TIM_CHANNEL_1] = pwm_buf[pwm-1] * 2;
+        TIM1->CHXCCVAL[TIM_CHANNEL_2] = pwm_buf[pwm-1] * 2;
+        TIM1->CHXCCVAL[TIM_CHANNEL_3] = pwm_buf[pwm-1] * 2;
+        TIM1->CHXCCVAL[TIM_CHANNEL_4] = pwm_buf[pwm-1] * 2;
+    }
+    else
+    {
+        PHY_CH[channel].Level = pwm;
+        TIM1->CHXCCVAL[channel] = pwm_buf[pwm-1] * 2;
+    }
+}
+#endif
 

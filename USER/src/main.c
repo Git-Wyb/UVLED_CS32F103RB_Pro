@@ -12,27 +12,23 @@
 #include "cs32f10x_rcu.h"
 #include "cs32f10x_misc.h"
 #include "TM1639.h"
+#include "UVLED.h"
 
 
 int main(void)
 {
+    Init_uvch();
     Init_Gpio();
-    Init_Timer1(30); //f=100k
+    Init_Timer1(50); //f=50k
     Init_Timer3();
     Init_Adc();
     Bueezr_Switch(ENABLE);
     wait_ms(1000);
     Bueezr_Switch(DISABLE);
-    Init_Usart1(115200);
+    //Init_Usart1(115200);
     Init_TM1639();
-
-    UV_Time[0].hundreds = 8;
-    UV_Time[0].point0 = 1;
-    UV_Time[0].decde = 8;
-    UV_Time[0].point1 = 1;
-    UV_Time[0].unit = 8;
-    UV_Time[0].point2 = 1;
-    TM1639_DisplayUVtime(UV_Time[0]);
+    TM1639_Display_UVLED_Char(DISPLAY_888);
+    
     while(1)
     {
         //wait_ms(20);
@@ -42,6 +38,7 @@ int main(void)
             TM1639_Read_Key();
             Key_Handle();
         }
+        //PHY_UvLed_Refresh();
     }
 }
 

@@ -23,6 +23,40 @@ static const uint8_t TM1639_Font[] = {
     0x40, /* - */
     0x00, /* 空格(blank) */
 };
+/*
+ ——a——
+|     |
+f     b
+|     |
+ ——g——
+|     |
+e     c
+|     |
+ ——d—— dp(point)
+bit0 - bit3 => a b c d; bit4 - bit7 => e f g dp*/
+static const uint8_t UVLED_Font[][3] = {
+    0xFF,0xFF,0xFF, //8.8.8 //0
+    0x79,0x04,0x54, //Ein
+    0x73,0x50,0x04, //Pri
+    0x7C,0x1C,0x50, //bur
+    0x5C,0x73,0x38, //oPL
+    0x66,0x3E,0x74, //4Uh  //5
+    0x5B,0x4F,0x5B, //232
+    0x38,0x79,0x3E, //LEU
+    0x73,0x1C,0x38, //PuL
+    0x78,0x04,0x54, //ein
+    0x6D,0x04,0x3D, //SiG  //10
+    0x00,0x5C,0x54, // on
+    0x5C,0x71,0x71, //oFF
+    0x00,0x6F,0x7D, // 96
+    0x06,0x6F,0x5B, //192
+    0x4F,0x7F,0x66, //384  //15
+    0x39,0x76,0X06, //CH1  //16
+    0x39,0x76,0x5B, //CH2
+    0x39,0x76,0x4F, //CH3
+    0x39,0x76,0x66, //CH4  //19
+    0x77,0x38,0x38  //ALL  //20
+};
 
 /* 简单微秒延时（72MHz 系统时钟下粗延时） */
 static void TM1639_DelayUs(uint16_t us)
@@ -139,7 +173,7 @@ void TM1639_WriteByte40(uint8_t addr, uint8_t dat)
 void TM1639_DisplayChar(uint8_t pos, char ch, uint8_t point)
 {
     uint8_t seg, idx;
-    if(point > 1) point = 0;
+    if(point > 1) point = 1;
     
     if (pos > 2) return;
 
@@ -321,11 +355,11 @@ uint8_t TM1639_Read_Key(void)
     if(byte_k2 & 0x40)  KeySta.Down = 1;
     else KeySta.Down = 0;
     
-    if(byte_k1 & 0x40)  KeySta.Left = 1;
-    else KeySta.Left = 0;
+    if(byte_k1 & 0x40)  KeySta.Bk = 1;
+    else KeySta.Bk = 0;
     
-    if(byte_k2 & 0x04)  KeySta.Right = 1;
-    else KeySta.Right = 0;
+    if(byte_k2 & 0x04)  KeySta.Fw = 1;
+    else KeySta.Fw = 0;
     
     if(byte_k2 & 0x08)  KeySta.Set = 1;
     else KeySta.Set = 0;
@@ -370,3 +404,105 @@ void TM1639_LED_switch(LED_ENUM lednum,u8 onoff)
     TM1639_WriteByte(addr,val);
 }
 
+void CH_LED_switch(u8 ledch,u8 err,u8 onoff)
+{
+    switch(ledch)
+    {
+        case 0:
+            if(err == 0)
+            {
+                TM1639_LED_switch(LED_CH1_GREEN,onoff);
+                TM1639_LED_switch(LED_CH1_RED,0);
+            }
+            else 
+            {
+                TM1639_LED_switch(LED_CH1_RED,onoff);
+                TM1639_LED_switch(LED_CH1_GREEN,0);
+            }
+            break;
+        
+        case 1:
+            if(err == 0) 
+            {
+                TM1639_LED_switch(LED_CH2_GREEN,onoff);
+                TM1639_LED_switch(LED_CH2_RED,0);
+            }
+            else
+            {
+                TM1639_LED_switch(LED_CH2_RED,onoff);
+                TM1639_LED_switch(LED_CH2_GREEN,0);
+            }
+            break;
+        
+        case 2:
+            if(err == 0)
+            {
+                TM1639_LED_switch(LED_CH3_GREEN,onoff);
+                TM1639_LED_switch(LED_CH3_RED,0);
+            }
+            else 
+            {
+                TM1639_LED_switch(LED_CH3_RED,onoff);
+                TM1639_LED_switch(LED_CH3_GREEN,0);
+            }
+            break;
+        
+        case 3:
+            if(err == 0) 
+            {
+                TM1639_LED_switch(LED_CH4_GREEN,onoff);
+                TM1639_LED_switch(LED_CH4_RED,0);
+            }
+            else
+            {
+                TM1639_LED_switch(LED_CH4_RED,onoff);
+                TM1639_LED_switch(LED_CH4_GREEN,0);
+            }
+            break;
+        
+        default:
+            TM1639_LED_switch(LED_CH1_GREEN,0);
+            TM1639_LED_switch(LED_CH1_RED,0);
+            TM1639_LED_switch(LED_CH2_GREEN,0);
+            TM1639_LED_switch(LED_CH2_RED,0);
+            TM1639_LED_switch(LED_CH3_GREEN,0);
+            TM1639_LED_switch(LED_CH3_RED,0);
+            TM1639_LED_switch(LED_CH4_GREEN,0);
+            TM1639_LED_switch(LED_CH4_RED,0);
+            break;
+    }
+}
+    
+void TM1639_Display_UVLED_Char(DISPLAY_ENUM pos)
+{
+    uint8_t seg = 0,i = 0;
+    if(pos > DISPLAY_ALL) pos = DISPLAY_ALL;
+    
+    for(i = 0; i < 3; i++)
+    {
+        seg = UVLED_Font[pos][i];
+        uint8_t addr = i * 2;      /* 每位两个地址：addr=低字节, addr+1=高字节 */
+        uint8_t lo = seg & 0x0F;       /* 低 4 位 → SEG1~4 = a~d */
+        uint8_t hi = (seg >> 4) & 0x0F;/* 高 4 位 → SEG9~12 = e,f,g,dp */
+
+        TM1639_SendCmd(0x40);               /* 自动递增，一次写两个字节 */
+        TM1639_STB_L();
+        TM1639_DelayUs(10);
+        TM1639_SendByte(0xC0 | addr);       /* 起始地址 */
+        TM1639_SendByte(lo);                /* 低字节：a~d */
+        TM1639_SendByte(hi);                /* 高字节：e,f,g,dp */
+        TM1639_DelayUs(10);
+        TM1639_STB_H();
+        TM1639_DelayUs(10);
+    }
+}
+
+void Display_UVLED_Mode(DISPLAY_ENUM dis)
+{
+    switch(dis)
+    {
+        case DISPLAY_Ein:
+            TM1639_Display_UVLED_Char(DISPLAY_Ein);
+            break;
+    }
+}

@@ -7,6 +7,17 @@
 #include "cs32f10x_misc.h"
 #include "cs32f10x_rcu.h"
 #include "sys.h"
+/*
+ ——a——
+|      |
+f      b
+|      |
+ ——g——
+|      |
+e      c
+|      |
+ ——d——  dp(point)
+*/
 //---------------------------------------------------------------------------------------------
 #define DISPLAY_ADDR0 0x00
 #define DISPLAY_ADDR1 0x01
@@ -27,6 +38,32 @@ typedef enum
     LED_CH3_GREEN,
     LED_CH4_GREEN,
 }LED_ENUM;
+
+typedef enum
+{
+    DISPLAY_888 = 0,
+    DISPLAY_Ein,
+    DISPLAY_Pri,
+    DISPLAY_bur,
+    DISPLAY_oPL,
+    DISPLAY_4Uh,
+    DISPLAY_232,
+    DISPLAY_LEU,
+    DISPLAY_PuL,
+    DISPLAY_ein,
+    DISPLAY_SiG,
+    DISPLAY_on,
+    DISPLAY_oFF,
+    DISPLAY_96,
+    DISPLAY_192,
+    DISPLAY_384,
+    DISPLAY_CH1,
+    DISPLAY_CH2,
+    DISPLAY_CH3,
+    DISPLAY_CH4,
+    DISPLAY_ALL
+}DISPLAY_ENUM;
+
 #define TM1639_STB_PORT    GPIOC
 #define TM1639_STB_PIN     GPIO_PIN_12
 #define TM1639_CLK_PORT    GPIOC
@@ -59,6 +96,8 @@ uint16_t TM1639_ReadKey(void);              // 读按键值（如未接按键可不用）
 uint8_t TM1639_Read_Key(void);
 void TM1639_LED_switch(LED_ENUM lednum,u8 onoff);
 void TM1639_DisplayUVtime(NUMSTU uvtime);
+void TM1639_Display_UVLED_Char(DISPLAY_ENUM pos);
+void CH_LED_switch(u8 ledch,u8 err,u8 onoff);
 
 #endif
 /*
@@ -73,3 +112,4 @@ mode   0x08  0x00
 ch     0x80  0x00
 uvon   0x00  0x80
 */
+

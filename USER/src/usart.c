@@ -20,7 +20,7 @@ void Init_Usart1(u32 baud)
     gpio_mode_config(GPIOB, GPIO_PIN_6, GPIO_MODE_OUT_AFPP(GPIO_SPEED_HIGH));
     gpio_mode_config(GPIOB, GPIO_PIN_7, GPIO_MODE_IN_PU);
     
-    /* Configure the basic information of USART3. */
+    /* Configure the basic information of USART1. */
     usart_def_init(USART1);
     ptr_usart.baud_rate = baud;
     ptr_usart.data_width = USART_DATA_WIDTH_8;

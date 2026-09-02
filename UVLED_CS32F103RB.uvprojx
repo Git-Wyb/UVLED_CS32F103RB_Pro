@@ -429,6 +429,11 @@
               <FilePath>.\USER\src\TM1639.c</FilePath>
             </File>
             <File>
+              <FileName>UVLED.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\src\UVLED.c</FilePath>
+            </File>
+            <File>
               <FileName>Application.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\USER\src\Application.c</FilePath>
