@@ -8,6 +8,15 @@ void PHY_UvLed_Refresh(void)
     //CH_LED_switch(PHY_CH[3].Uvch, PHY_CH[0].Error, PHY_CH[0].Uvon);
 }
 
+void PHY_UVLed_Time(void)
+{
+    u8 i = 0;
+    for(i = 0; i < 4; i++)
+    {
+        //if()
+    }
+}
+
 void PHY_UVLed_Select(u8 ch)
 {
     switch(ch)

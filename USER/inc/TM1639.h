@@ -98,6 +98,7 @@ void TM1639_LED_switch(LED_ENUM lednum,u8 onoff);
 void TM1639_DisplayUVtime(NUMSTU uvtime);
 void TM1639_Display_UVLED_Char(DISPLAY_ENUM pos);
 void CH_LED_switch(u8 ledch,u8 err,u8 onoff);
+void TM1639_Refresh(void);
 
 #endif
 /*

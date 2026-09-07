@@ -22,13 +22,14 @@ int main(void)
     Init_Timer1(50); //f=50k
     Init_Timer3();
     Init_Adc();
-    Bueezr_Switch(ENABLE);
-    wait_ms(1000);
-    Bueezr_Switch(DISABLE);
-    //Init_Usart1(115200);
+    Bueezr_Config(200,0,0);
+    //Init_Usart1(9600);
     Init_TM1639();
     TM1639_Display_UVLED_Char(DISPLAY_888);
-    
+    //PHY_CH[0].Option = 1;
+    //PHY_CH[0].Level = 1;
+    //UV_LED_PwmSet(UVLED_CH_1,9);
+    //UV_LED_Switch();
     while(1)
     {
         //wait_ms(20);
@@ -38,7 +39,23 @@ int main(void)
             TM1639_Read_Key();
             Key_Handle();
         }
-        //PHY_UvLed_Refresh();
+        //get_adc_val();
+        adc_dma_value();
+        if(time_adc_conv == 0)
+        {
+            time_adc_conv = 50;
+            uvled_current_detection();
+        }
     }
 }
 
+
+void Send_Logo(void)
+{
+    if(flag_rx_done == 1)
+    {
+        flag_rx_done = 0;
+        printf("\r\n2026.09.02,Soft Version V0.00\r\n");
+        //printf("ADC Cover_Value    = %d(mV)\r\n",CalVal.Cover_Value);
+    }
+}

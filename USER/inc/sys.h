@@ -1,6 +1,8 @@
 #ifndef __SYS_H__
 #define __SYS_H__
 
+#include <stdio.h>
+#include <string.h>
 #include "cs32f10x.h"
 #include "cs32f10x_conf.h"
 
@@ -61,8 +63,15 @@ typedef struct{
     u8 Uvon;
     u8 Error;
     u8 Option;
+    u16 Current;
 }CH_STU;
 
+#define flag_buzzer_sw  Flag0.b0
+#define flag_rx_done    Flag0.b1
+#define flag_adc_ok     Flag0.b2
+#define flag_rx_head    Flag0.b3
+
+extern BaseFlagStu Flag0;
 extern KEYSTU KeySta;
 extern u16 time_ms;
 extern u16 time_10ms;
@@ -71,6 +80,13 @@ extern u8 keysta_last;
 extern KEYSTU KeyStaNow;
 extern NUMSTU UV_Time[4];
 extern CH_STU PHY_CH[CHNUM];
+extern u8 buzzer_num;
+extern u16 time_buzzer_on;
+extern u16 time_buzzer_off;
+extern u16 Adc_Value_Buff[5][7];
+extern u16 time_adc_conv;
+extern u16 uvled_time;
+
 void Init_uvch(void);
 
 #endif

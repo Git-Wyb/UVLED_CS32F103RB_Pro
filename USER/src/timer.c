@@ -21,6 +21,10 @@ u16 pwm_buf[100] = {7,   14, 22, 29, 36, 43, 50, 58, 65, 72,
                     511,518,526,533,540,547,554,562,569,576,
                     583,590,598,605,612,619,626,634,641,648,
                     655,662,670,677,684,691,698,706,713,720};
+
+u16 level_buff[100] = {0,144,166,180,194,208,223};
+
+
 void Init_Timer3(void)
 {
     tim_base_t timer_config_struct;
@@ -58,11 +62,17 @@ void TIM3_IRQHandler(void)
         
         if(time_ms) time_ms--;
         if(time_keyscan) time_keyscan--;
+        if(time_adc_conv) time_adc_conv--;
         time_10ms++;
-        if(time_10ms >= 10)
+        if(time_10ms >= 100)
         {
             time_10ms = 0;
+            if(PHY_CH[0].Time) PHY_CH[0].Time--;
+            if(PHY_CH[1].Time) PHY_CH[1].Time--;
+            if(PHY_CH[2].Time) PHY_CH[2].Time--;
+            if(PHY_CH[3].Time) PHY_CH[3].Time--;
         }
+        _Bueezr_Handle();
     }
 }
 
@@ -113,7 +123,7 @@ void Init_Timer2(void)
     tim_chcc_enable_ctrl(TIM2,TIM_CHANNEL_3,ENABLE);
 }
 
-void Bueezr_Switch(enable_state_t sta)
+void Buzzer_Switch(enable_state_t sta)
 {
     if(sta == ENABLE) 
     {
@@ -126,6 +136,30 @@ void Bueezr_Switch(enable_state_t sta)
         __TIM_DISABLE(TIM2);
         gpio_mode_config(GPIOB, GPIO_PIN_10, GPIO_MODE_OUT_PP(GPIO_SPEED_HIGH));
         __GPIO_PIN_SET(GPIOB,GPIO_PIN_10);
+    }
+}
+
+void Bueezr_Config(u16 ontime, u16 offtime, u8 num)
+{
+    time_buzzer_on = ontime;
+    time_buzzer_off = offtime;
+    buzzer_num = num;
+}
+
+void _Bueezr_Handle(void)
+{
+    if(time_buzzer_on) time_buzzer_on--;
+    else if(time_buzzer_off) time_buzzer_off--;
+    
+    if(time_buzzer_on && flag_buzzer_sw == 0) 
+    {
+        flag_buzzer_sw = 1;
+        Buzzer_Switch(ENABLE);
+    }
+    else if(time_buzzer_on == 0 && flag_buzzer_sw == 1)
+    {
+        flag_buzzer_sw = 0;
+        Buzzer_Switch(DISABLE);
     }
 }
 
@@ -207,6 +241,15 @@ void Init_Timer1(u8 fkhz)
     tim_chcc_enable_ctrl(TIM1,TIM_CHANNEL_2,DISABLE);
     tim_chcc_enable_ctrl(TIM1,TIM_CHANNEL_3,DISABLE);
     tim_chcc_enable_ctrl(TIM1,TIM_CHANNEL_4,DISABLE);
+    
+    gpio_mode_config(GPIOA, timer_ch_buff[TIM_CHANNEL_1], GPIO_MODE_OUT_PP(GPIO_SPEED_HIGH));
+    gpio_mode_config(GPIOA, timer_ch_buff[TIM_CHANNEL_2], GPIO_MODE_OUT_PP(GPIO_SPEED_HIGH));
+    gpio_mode_config(GPIOA, timer_ch_buff[TIM_CHANNEL_3], GPIO_MODE_OUT_PP(GPIO_SPEED_HIGH));
+    gpio_mode_config(GPIOA, timer_ch_buff[TIM_CHANNEL_4], GPIO_MODE_OUT_PP(GPIO_SPEED_HIGH));
+    __GPIO_PIN_RESET(GPIOA,timer_ch_buff[TIM_CHANNEL_1]);
+    __GPIO_PIN_RESET(GPIOA,timer_ch_buff[TIM_CHANNEL_2]);
+    __GPIO_PIN_RESET(GPIOA,timer_ch_buff[TIM_CHANNEL_3]);
+    __GPIO_PIN_RESET(GPIOA,timer_ch_buff[TIM_CHANNEL_4]);
 }
 
 void tim_pwm_output_enable_ctrl(tim_reg_t* ptr_timer, uint16_t channel, u8 onoff)
@@ -252,10 +295,11 @@ void UV_LED_Switch(void)
                     timer1_channel_gpiomode(channel,0,0);
                     tim_pwm_output_enable_ctrl(TIM1,channel,PHY_CH[channel].Uvon);
                 }
+                
             }
-            
         }
     }
+    if(Check_UvLed_Sta()) Bueezr_Config(200,0,0);
     /*
     if(onoff > 1) onoff = 1;
     if(channel > CHNUM) return;
@@ -279,6 +323,11 @@ void UV_LED_Switch(void)
     }
     else tim_pwm_output_enable_ctrl(TIM1,channel,onoff);
     */
+}
+
+u8 Check_UvLed_Sta(void)
+{
+    return (PHY_CH[0].Uvon==1 || PHY_CH[1].Uvon==1 || PHY_CH[2].Uvon==1 || PHY_CH[3].Uvon==1);
 }
  
 #if 0
@@ -331,4 +380,4 @@ void UV_LED_PwmSet(CH_ENUM channel, u8 pwm)
     }
 }
 #endif
-
+//144 + ((pwm-1)*14) ==> L8

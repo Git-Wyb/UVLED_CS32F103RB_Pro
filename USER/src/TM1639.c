@@ -506,3 +506,85 @@ void Display_UVLED_Mode(DISPLAY_ENUM dis)
             break;
     }
 }
+#if 0
+void TM1639_SetDP(uint8_t pos, u8 state)
+{
+    uint8_t addr = pos * 2 + 1;  // 定位到该位的高地址
+    if (addr >= 16) return;       // 地址越界保护
+
+    if (state == 1)
+        disp_buf[addr] |=  (1 << 3);  // dp对应bit3，置1点亮
+    else
+        disp_buf[addr] &= ~(1 << 3);  // 清0熄灭
+
+    TM1639_Refresh();  // 刷新到芯片
+}
+
+void TM1639_Refresh(void)
+{
+    uint8_t i;
+    TM1639_SendCmd(0x40);               /* 自动地址递增 */
+    TM1639_STB_L();
+    TM1639_DelayUs(10);
+    TM1639_SendByte(0xC0);              /* 起始地址 0x00 */
+    for (i = 0; i < 16; i++)    /* 连续写入16字节缓存 */
+        TM1639_SendByte(disp_buf[i]);
+    TM1639_DelayUs(10);
+    TM1639_STB_H();
+    TM1639_DelayUs(10);
+}
+
+void TM1639_DisplayFloat(float val)
+{
+    int32_t int_num;
+    uint8_t dig0, dig1, dig2;
+    int8_t dp_pos = -1;  // -1=不点亮小数点
+
+    /* 输入范围钳位 */
+    if (val < 0.0f) val = 0.0f;
+    if (val > 999.9f) val = 999.9f;
+
+    /* 放大10倍转整数 + 四舍五入，彻底避免浮点误差 */
+    int_num = (int32_t)(val * 10.0f + 0.5f);
+
+    /* 拆分数字 + 确定小数点位置 */
+    if (int_num >= 1000)          /* ≥100：三位整数，无小数 */
+    {
+        dig0 = (uint8_t)(int_num / 1000);
+        dig1 = (uint8_t)((int_num / 100) % 10);
+        dig2 = (uint8_t)((int_num / 10) % 10);
+        dp_pos = -1;
+    }
+    else if (int_num >= 100)      /* 10~99.9：两位整数 + 一位小数 */
+    {
+        dig0 = (uint8_t)((int_num / 100) % 10);
+        dig1 = (uint8_t)((int_num / 10) % 10);
+        dig2 = (uint8_t)(int_num % 10);
+        dp_pos = 1;  // 小数点在第1位（中间位）右下角
+    }
+    else                          /* 0.0~9.9：一位整数 + 一位小数 */
+    {
+        dig0 = (uint8_t)(int_num / 10);
+        dig1 = (uint8_t)(int_num % 10);
+        dig2 = 0xFF; // 标记第三位熄灭
+        dp_pos = 0;  // 小数点在第0位（最左位）右下角
+    }
+
+    /* 写入显示缓存 */
+    TM1639_DisplayChar(0, seg_table[dig0]);
+    TM1639_DisplayChar(1, seg_table[dig1]);
+    
+    if (dig2 == 0xFF)
+        TM1639_DisplayChar(2, 0x00);  // 第三位熄灭
+    else
+        TM1639_DisplayChar(2, seg_table[dig2]);
+
+    /* 设置小数点状态 */
+    TM1639_SetDP(0, (dp_pos == 0) ? ENABLE : DISABLE);
+    TM1639_SetDP(1, (dp_pos == 1) ? ENABLE : DISABLE);
+    TM1639_SetDP(2, DISABLE);
+
+    /* 一次性刷新生效 */
+    TM1639_Refresh();
+}
+#endif

@@ -58,13 +58,15 @@ void Key_Up_Scan(void)
             if(PHY_CH[0].Uvon==0 && PHY_CH[1].Uvon==0 && PHY_CH[2].Uvon==0 && PHY_CH[3].Uvon==0)
             {
                 pwmcnt++;
-                if(pwmcnt > 9) pwmcnt = 1;
-                UV_LED_PwmSet(UVLED_CH_ALL,fbuff[pwmcnt]);
-                //if(pwmcnt > 100) pwmcnt = 1;
-                //UV_LED_PwmSet(TIM_CHANNEL_ALL,pwmcnt);
-                TM1639_DisplayNum(fbuff[pwmcnt]);
+                //if(pwmcnt > 9) pwmcnt = 1;
+                //UV_LED_PwmSet(UVLED_CH_ALL,fbuff[pwmcnt]);
+                if(pwmcnt > 100) pwmcnt = 1;
+                UV_LED_PwmSet(UVLED_CH_ALL,pwmcnt);
+                TM1639_DisplayNum(pwmcnt);
                 //if(pwmcnt > 15) pwmcnt = 1;
                 //TM1639_Display_UVLED_Char(pwmcnt);
+                TM1639_LED_switch(LED_LEVEL,1);
+                TM1639_LED_switch(LED_TIME,0);
             }
         }
     }else 
@@ -86,12 +88,14 @@ void Key_Down_Scan(void)
             if(PHY_CH[0].Uvon==0 && PHY_CH[1].Uvon==0 && PHY_CH[2].Uvon==0 && PHY_CH[3].Uvon==0)
             {
                 if(pwmcnt != 0) pwmcnt--;
-                if(pwmcnt == 0) pwmcnt = 9;
-                UV_LED_PwmSet(UVLED_CH_ALL,fbuff[pwmcnt]);
-                //if(pwmcnt == 0) pwmcnt = 100;
-                //UV_LED_PwmSet(TIM_CHANNEL_ALL,pwmcnt);
-                TM1639_DisplayNum(fbuff[pwmcnt]);
+                //if(pwmcnt == 0) pwmcnt = 9;
+                //UV_LED_PwmSet(UVLED_CH_ALL,fbuff[pwmcnt]);
+                if(pwmcnt == 0) pwmcnt = 100;
+                UV_LED_PwmSet(UVLED_CH_ALL,pwmcnt);
+                TM1639_DisplayNum(pwmcnt);
                 //TM1639_Display_UVLED_Char(pwmcnt);
+                TM1639_LED_switch(LED_LEVEL,1);
+                TM1639_LED_switch(LED_TIME,0);
             }
         }
     }else 
@@ -110,7 +114,7 @@ void Key_Set_Scan(void)
         {
             setcnt = 0;
             KeyStaNow.Set = 1;
-            if(PHY_CH[0].Uvon==0 && PHY_CH[1].Uvon==0 && PHY_CH[2].Uvon==0 && PHY_CH[3].Uvon==0)
+            if(Check_UvLed_Sta() == 0)
             {
                 pwmcnt = 0;
                 UV_LED_PwmSet(UVLED_CH_ALL,pwmcnt);
@@ -133,7 +137,36 @@ void Key_Bk_Scan(void)
         {
             bkcnt = 0;
             KeyStaNow.Bk = 1;
-            
+            if(Check_UvLed_Sta() == 0)
+            {
+                uvled_time++;
+                
+                /*if(uvled_time >= 1000)
+                {
+                    UV_Time[0].hundreds = (uint8_t)(uvled_time / 1000);
+                    UV_Time[0].decde = (uint8_t)((uvled_time / 100) % 10);
+                    UV_Time[0].unit = (uint8_t)((uvled_time / 10) % 10);
+                    UV_Time[0].point1 = 0;
+                }
+                else if(uvled_time >= 100)
+                {
+                    UV_Time[0].hundreds = (uint8_t)((uvled_time / 100) % 10);
+                    UV_Time[0].decde = (uint8_t)((uvled_time / 10) % 10);
+                    UV_Time[0].unit = (uint8_t)(uvled_time % 10);
+                    UV_Time[0].point1 = 1; // 小数点在第1位（中间位）右下角
+                }
+                else
+                {
+                    UV_Time[0].hundreds = (uint8_t)(uvled_time / 10);
+                    UV_Time[0].decde = (uint8_t)(uvled_time % 10);
+                    UV_Time[0].unit = 0x00; // 标记第三位熄灭
+                    UV_Time[0].point1 = 1;  // 小数点在第0位（最左位）右下角
+                }
+                
+                TM1639_DisplayUVtime(UV_Time[0]);*/
+                TM1639_LED_switch(LED_LEVEL,0);
+                TM1639_LED_switch(LED_TIME,1);
+            }
         }
     }else 
     {
@@ -151,7 +184,13 @@ void Key_Fw_Scan(void)
         {
             fwcnt = 0;
             KeyStaNow.Fw = 1;
-            
+            if(Check_UvLed_Sta() == 0)
+            {
+                uvled_time--;
+                if(uvled_time == 0) uvled_time = 999;
+                TM1639_LED_switch(LED_LEVEL,0);
+                TM1639_LED_switch(LED_TIME,1);
+            }
         }
     }else 
     {
@@ -171,6 +210,7 @@ void Key_Uvon_Scan(void)
             KeyStaNow.Uvon = 1;
             if(uvon == 0) uvon = 1;
             else uvon = 0;
+            time_adc_conv = 50;
             UV_LED_Switch();
             //TM1639_LED_switch(LED_CH1_GREEN,uvon);
             //TM1639_LED_switch(LED_CH2_GREEN,uvon);
@@ -193,7 +233,7 @@ void Key_Ch_Scan(void)
         {
             chcnt = 0;
             KeyStaNow.Ch = 1;
-            if(PHY_CH[0].Uvon==0 && PHY_CH[1].Uvon==0 && PHY_CH[2].Uvon==0 && PHY_CH[3].Uvon==0)
+            if(Check_UvLed_Sta() == 0)
             {
                 chnum++;
                 if(chnum > 5) chnum = 1;
