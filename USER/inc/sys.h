@@ -16,6 +16,11 @@ typedef float f32;
 
 #define CHNUM 4
 
+#define CHECK0      0x00
+#define CHECK1      0x01
+#define CHECK2      0x02
+#define CHECK_NONE  0x03
+
 typedef union{
     u8 Flag;
     struct
@@ -66,6 +71,11 @@ typedef struct{
     u16 Current;
 }CH_STU;
 
+typedef struct{
+    u16 uvontimer;
+    u8  uvoff_flag;
+}CH_UVON;
+
 #define flag_buzzer_sw  Flag0.b0
 #define flag_rx_done    Flag0.b1
 #define flag_adc_ok     Flag0.b2
@@ -86,6 +96,8 @@ extern u16 time_buzzer_off;
 extern u16 Adc_Value_Buff[5][7];
 extern u16 time_adc_conv;
 extern u16 uvled_time;
+extern CH_UVON Timer_Uvon[4];
+extern BaseFlagStu UVCh_Check;
 
 void Init_uvch(void);
 

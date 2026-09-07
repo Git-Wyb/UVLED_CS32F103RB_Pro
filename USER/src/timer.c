@@ -67,10 +67,7 @@ void TIM3_IRQHandler(void)
         if(time_10ms >= 100)
         {
             time_10ms = 0;
-            if(PHY_CH[0].Time) PHY_CH[0].Time--;
-            if(PHY_CH[1].Time) PHY_CH[1].Time--;
-            if(PHY_CH[2].Time) PHY_CH[2].Time--;
-            if(PHY_CH[3].Time) PHY_CH[3].Time--;
+            _timer_uvon_scan();
         }
         _Bueezr_Handle();
     }
@@ -182,6 +179,25 @@ void timer1_channel_gpiomode(u8 chn,u8 type, u8 lev)
     }
 }
 
+void _timer_uvon_scan(void)
+{
+    u8 ch = 0;
+    for(ch = 0; ch < CHNUM; ch++)
+    {
+        if(Timer_Uvon[ch].uvontimer && PHY_CH[ch].Uvon) 
+        {
+            Timer_Uvon[ch].uvontimer--;
+            if(Timer_Uvon[ch].uvontimer == 0)
+            {
+                PHY_CH[ch].Uvon = 0;
+                Timer_Uvon[ch].uvoff_flag = 1;
+                timer1_channel_gpiomode(ch,1,0);
+                Bueezr_Config(200,0,0);
+            }
+        }
+    }
+}
+
 u16 arr_period = 0;
 /* UV LED CH1 - CH4: PA8 - PA11: TIM1 -> CH1 - CH4*/
 void Init_Timer1(u8 fkhz)
@@ -283,6 +299,8 @@ void UV_LED_Switch(void)
             if(PHY_CH[channel].Uvon == 0) //uv led off
             {
                 timer1_channel_gpiomode(channel,1,0);
+                Timer_Uvon[channel].uvontimer = 0;
+                Timer_Uvon[channel].uvoff_flag = 0;
             }
             else //uv led on
             {
@@ -295,39 +313,18 @@ void UV_LED_Switch(void)
                     timer1_channel_gpiomode(channel,0,0);
                     tim_pwm_output_enable_ctrl(TIM1,channel,PHY_CH[channel].Uvon);
                 }
-                
+                Timer_Uvon[channel].uvontimer = PHY_CH[channel].Time;
             }
         }
     }
     if(Check_UvLed_Sta()) Bueezr_Config(200,0,0);
-    /*
-    if(onoff > 1) onoff = 1;
-    if(channel > CHNUM) return;
-    if(PHY_CH[channel].Level == 0 || PHY_CH[channel].Level == 100)
-    {
-        if(channel == UVLED_CH_ALL)
-        {
-            timer1_channel_gpiomode(UVLED_CH_1,1,PHY_CH[UVLED_CH_1].Level);
-            timer1_channel_gpiomode(UVLED_CH_2,1,PHY_CH[UVLED_CH_2].Level);
-            timer1_channel_gpiomode(UVLED_CH_3,1,PHY_CH[UVLED_CH_3].Level);
-            timer1_channel_gpiomode(UVLED_CH_4,1,PHY_CH[UVLED_CH_4].Level);
-        }
-        else timer1_channel_gpiomode(channel,1,PHY_CH[channel].Level);
-    }  
-    else if(channel == UVLED_CH_ALL)
-    {
-        tim_pwm_output_enable_ctrl(TIM1,TIM_CHANNEL_1,onoff);
-        tim_pwm_output_enable_ctrl(TIM1,TIM_CHANNEL_2,onoff);
-        tim_pwm_output_enable_ctrl(TIM1,TIM_CHANNEL_3,onoff);
-        tim_pwm_output_enable_ctrl(TIM1,TIM_CHANNEL_4,onoff);
-    }
-    else tim_pwm_output_enable_ctrl(TIM1,channel,onoff);
-    */
 }
 
 u8 Check_UvLed_Sta(void)
 {
-    return (PHY_CH[0].Uvon==1 || PHY_CH[1].Uvon==1 || PHY_CH[2].Uvon==1 || PHY_CH[3].Uvon==1);
+    u8 i = 0;
+    i = PHY_CH[0].Uvon | (PHY_CH[1].Uvon<<1) || (PHY_CH[2].Uvon<<2) || (PHY_CH[3].Uvon<<3);
+    return i;
 }
  
 #if 0

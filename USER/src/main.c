@@ -30,6 +30,7 @@ int main(void)
     //PHY_CH[0].Level = 1;
     //UV_LED_PwmSet(UVLED_CH_1,9);
     //UV_LED_Switch();
+    PHY_CH[0].Option = 1;
     while(1)
     {
         //wait_ms(20);
@@ -38,14 +39,15 @@ int main(void)
             time_keyscan = 20;
             TM1639_Read_Key();
             Key_Handle();
+            PHY_UVLed_CheckIn();
         }
-        //get_adc_val();
         adc_dma_value();
         if(time_adc_conv == 0)
         {
             time_adc_conv = 50;
             uvled_current_detection();
         }
+        PHY_UVon_ChLed();
     }
 }
 

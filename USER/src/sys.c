@@ -20,6 +20,8 @@ u8 buzzer_num = 0;
 u16 Adc_Value_Buff[5][7] = {0};
 u16 time_adc_conv = 50;
 u16 uvled_time = 0;
+CH_UVON Timer_Uvon[4] = {0};
+BaseFlagStu UVCh_Check = {0};
 
 //system_clock = 72MHz.
 void RCC_Configuration(void)

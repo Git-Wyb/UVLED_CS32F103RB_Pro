@@ -23,5 +23,6 @@ void timer1_channel_gpiomode(u8 chn,u8 type, u8 lev);
 void _Bueezr_Handle(void);
 void Bueezr_Config(u16 ontime, u16 offtime, u8 num);
 u8 Check_UvLed_Sta(void);
+void _timer_uvon_scan(void);
 
 #endif

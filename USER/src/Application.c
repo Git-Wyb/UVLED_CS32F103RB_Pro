@@ -32,6 +32,7 @@ u8 timecnt = 0;
 u8 hourcnt = 0;
 u8 bkcnt = 0;
 u8 fwcnt = 0;
+u8 moden = 0;
 u8 fbuff[11] = {0,1,2,3,5,10,15,20,50,100};
 
 void Key_Handle(void)
@@ -55,18 +56,21 @@ void Key_Up_Scan(void)
         {
             upcnt = 0;
             KeyStaNow.Up = 1;
-            if(PHY_CH[0].Uvon==0 && PHY_CH[1].Uvon==0 && PHY_CH[2].Uvon==0 && PHY_CH[3].Uvon==0)
+            if(Check_UvLed_Sta() == 0)
             {
                 pwmcnt++;
                 //if(pwmcnt > 9) pwmcnt = 1;
                 //UV_LED_PwmSet(UVLED_CH_ALL,fbuff[pwmcnt]);
                 if(pwmcnt > 100) pwmcnt = 1;
-                UV_LED_PwmSet(UVLED_CH_ALL,pwmcnt);
+                if(chnum == 0) UV_LED_PwmSet(0,pwmcnt); //UVLED_CH_ALL
+                else if(chnum < 5) UV_LED_PwmSet(chnum-1,pwmcnt);
+                else UV_LED_PwmSet(UVLED_CH_ALL,pwmcnt);
                 TM1639_DisplayNum(pwmcnt);
                 //if(pwmcnt > 15) pwmcnt = 1;
                 //TM1639_Display_UVLED_Char(pwmcnt);
                 TM1639_LED_switch(LED_LEVEL,1);
                 TM1639_LED_switch(LED_TIME,0);
+                moden = 2;
             }
         }
     }else 
@@ -85,17 +89,20 @@ void Key_Down_Scan(void)
         {
             downcnt = 0;
             KeyStaNow.Down = 1;
-            if(PHY_CH[0].Uvon==0 && PHY_CH[1].Uvon==0 && PHY_CH[2].Uvon==0 && PHY_CH[3].Uvon==0)
+            if(Check_UvLed_Sta() == 0)
             {
                 if(pwmcnt != 0) pwmcnt--;
                 //if(pwmcnt == 0) pwmcnt = 9;
                 //UV_LED_PwmSet(UVLED_CH_ALL,fbuff[pwmcnt]);
                 if(pwmcnt == 0) pwmcnt = 100;
-                UV_LED_PwmSet(UVLED_CH_ALL,pwmcnt);
+                if(chnum == 0) UV_LED_PwmSet(0,pwmcnt); //UVLED_CH_ALL
+                else if(chnum < 5) UV_LED_PwmSet(chnum-1,pwmcnt);
+                else UV_LED_PwmSet(UVLED_CH_ALL,pwmcnt);
                 TM1639_DisplayNum(pwmcnt);
                 //TM1639_Display_UVLED_Char(pwmcnt);
                 TM1639_LED_switch(LED_LEVEL,1);
                 TM1639_LED_switch(LED_TIME,0);
+                moden = 2;
             }
         }
     }else 
@@ -119,6 +126,11 @@ void Key_Set_Scan(void)
                 pwmcnt = 0;
                 UV_LED_PwmSet(UVLED_CH_ALL,pwmcnt);
                 TM1639_DisplayNum(pwmcnt);
+                uvled_time = 0;
+                PHY_Set_UVLed_Time(0);
+                TM1639_LED_switch(LED_LEVEL,0);
+                TM1639_LED_switch(LED_TIME,0);
+                moden = 0;
             }
         }
     }else 
@@ -139,8 +151,13 @@ void Key_Bk_Scan(void)
             KeyStaNow.Bk = 1;
             if(Check_UvLed_Sta() == 0)
             {
-                uvled_time++;
-                
+                if(uvled_time == 0) uvled_time = 1000;
+                if(uvled_time != 0) uvled_time--;
+                TM1639_DisplayNum(uvled_time);
+                PHY_Set_UVLed_Time(uvled_time*10); //uvled_time*10 * 100ms
+                TM1639_LED_switch(LED_LEVEL,0);
+                TM1639_LED_switch(LED_TIME,1);
+                moden = 3;
                 /*if(uvled_time >= 1000)
                 {
                     UV_Time[0].hundreds = (uint8_t)(uvled_time / 1000);
@@ -164,8 +181,6 @@ void Key_Bk_Scan(void)
                 }
                 
                 TM1639_DisplayUVtime(UV_Time[0]);*/
-                TM1639_LED_switch(LED_LEVEL,0);
-                TM1639_LED_switch(LED_TIME,1);
             }
         }
     }else 
@@ -186,10 +201,13 @@ void Key_Fw_Scan(void)
             KeyStaNow.Fw = 1;
             if(Check_UvLed_Sta() == 0)
             {
-                uvled_time--;
-                if(uvled_time == 0) uvled_time = 999;
+                uvled_time++; //s
+                if(uvled_time > 999) uvled_time = 0;
+                TM1639_DisplayNum(uvled_time);
+                PHY_Set_UVLed_Time(uvled_time*10); //uvled_time*10 * 100ms
                 TM1639_LED_switch(LED_LEVEL,0);
                 TM1639_LED_switch(LED_TIME,1);
+                moden = 3;
             }
         }
     }else 
@@ -240,6 +258,9 @@ void Key_Ch_Scan(void)
                 TM1639_Display_UVLED_Char(chnum+15);
                 PHY_UVLed_Select(chnum);
                 //TM1639_LED_switch(LED_CH1_RED,chnum);
+                TM1639_LED_switch(LED_LEVEL,0);
+                TM1639_LED_switch(LED_TIME,0);
+                moden = 1;
             }
         }
     }else 
@@ -258,7 +279,32 @@ void Key_Mode_Scan(void)
         {
             modecnt = 0;
             KeyStaNow.Mode = 1;
-            
+            moden++;
+            switch(moden)
+            {
+                case 1:
+                    if(chnum == 0) TM1639_Display_UVLED_Char(1+15);
+                    else if(chnum < 5) TM1639_Display_UVLED_Char(chnum+15);
+                    else TM1639_Display_UVLED_Char(5+15);
+                    TM1639_LED_switch(LED_LEVEL,0);
+                    TM1639_LED_switch(LED_TIME,0);
+                    break;
+                
+                case 2:
+                    if(chnum < 5) TM1639_DisplayNum(PHY_CH[chnum-1].Level);
+                    else TM1639_DisplayNum(PHY_CH[0].Level);
+                    TM1639_LED_switch(LED_LEVEL,1);
+                    TM1639_LED_switch(LED_TIME,0);
+                    break;
+                
+                default:
+                    moden = 0;
+                    if(chnum < 5) TM1639_DisplayNum(PHY_CH[chnum-1].Time/10);
+                    else TM1639_DisplayNum((PHY_CH[0].Time/10));
+                    TM1639_LED_switch(LED_LEVEL,0);
+                    TM1639_LED_switch(LED_TIME,1);
+                    break;
+            }
         }
     }else 
     {
@@ -266,5 +312,4 @@ void Key_Mode_Scan(void)
         if(KeySta.Mode == 0) KeyStaNow.Mode = 0;
     }
 }
- 
 

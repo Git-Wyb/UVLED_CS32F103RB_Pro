@@ -193,7 +193,7 @@ void uvled_current_detection(void)
         PHY_CH[1].Current = ((bubble_sort_average_value(&Adc_Value_Buff[2][0],7) * 3300) / 4095);
         PHY_CH[2].Current = ((bubble_sort_average_value(&Adc_Value_Buff[3][0],7) * 3300) / 4095);
         PHY_CH[3].Current = ((bubble_sort_average_value(&Adc_Value_Buff[4][0],7) * 3300) / 4095);
-/*
+
         for(i = 0; i < 4; i++)
         {
             if(PHY_CH[i].Uvon == 1)
@@ -204,8 +204,10 @@ void uvled_current_detection(void)
                     PHY_CH[i].Uvon = 0;
                     PHY_CH[i].Time = 0;
                     timer1_channel_gpiomode(i,1,0);
+                    Timer_Uvon[i].uvontimer = 0;
+                    Timer_Uvon[i].uvoff_flag = 0;
                     CH_LED_switch(i, 0, 0);
-                }
+                }/*
                 else if(PHY_CH[i].Current < 5)
                 {
                     //wait_ms(50);
@@ -213,9 +215,9 @@ void uvled_current_detection(void)
                     PHY_CH[i].Time = 0;
                     timer1_channel_gpiomode(i,1,0);
                     CH_LED_switch(i, 1, 1);
-                }
+                }*/
             }
-        }*/
+        }
         if(Low_Valtage <= 1600)
         {
             gpio_mode_config(GPIOC, GPIO_PIN_13, GPIO_MODE_OUT_PP(GPIO_SPEED_HIGH));
