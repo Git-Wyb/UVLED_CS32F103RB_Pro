@@ -257,7 +257,6 @@ void Key_Ch_Scan(void)
                 if(chnum > 5) chnum = 1;
                 TM1639_Display_UVLED_Char(chnum+15);
                 PHY_UVLed_Select(chnum);
-                //TM1639_LED_switch(LED_CH1_RED,chnum);
                 TM1639_LED_switch(LED_LEVEL,0);
                 TM1639_LED_switch(LED_TIME,0);
                 moden = 1;

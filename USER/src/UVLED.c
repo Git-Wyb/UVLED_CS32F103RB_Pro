@@ -106,6 +106,14 @@ void PHY_UVLed_Select(u8 ch)
             PHY_CH[1].Option = 1;
             PHY_CH[2].Option = 1;
             PHY_CH[3].Option = 1;
+            PHY_CH[0].Level = 0;
+            PHY_CH[0].Time = 0;
+            PHY_CH[1].Level = 0;
+            PHY_CH[1].Time = 0;
+            PHY_CH[2].Level = 0;
+            PHY_CH[2].Time = 0;
+            PHY_CH[3].Level = 0;
+            PHY_CH[3].Time = 0;
             break;
         
         default:

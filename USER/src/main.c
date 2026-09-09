@@ -14,12 +14,12 @@
 #include "TM1639.h"
 #include "UVLED.h"
 
-
+u8 beepcnt = 0;
 int main(void)
 {
     Init_uvch();
     Init_Gpio();
-    Init_Timer1(50); //f=50k
+    Init_Timer1(); //f=50k
     Init_Timer3();
     Init_Adc();
     Bueezr_Config(200,0,0);
@@ -46,6 +46,11 @@ int main(void)
         {
             time_adc_conv = 50;
             uvled_current_detection();
+            if(beepcnt++ > 40)
+            {
+                beepcnt = 0;
+                //Bueezr_Config(200,0,0);
+            }
         }
         PHY_UVon_ChLed();
     }

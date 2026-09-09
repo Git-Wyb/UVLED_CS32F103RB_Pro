@@ -68,6 +68,7 @@ typedef struct{
     u8 Uvon;
     u8 Error;
     u8 Option;
+    u8 Ready;
     u16 Current;
 }CH_STU;
 

@@ -3,6 +3,8 @@
 
 #include "sys.h"
 
+#define FREQ_PWM 50 //KHz
+
 typedef enum
 {
     UVLED_CH_1 = 0,
@@ -12,7 +14,7 @@ typedef enum
     UVLED_CH_ALL
 }CH_ENUM;
 
-void Init_Timer1(u8 fkhz);
+void Init_Timer1(void);
 void Init_Timer2(void);
 void Init_Timer3(void);
 void Bueezr_Switch(u8 sta);
