@@ -55,7 +55,11 @@ static const uint8_t UVLED_Font[][3] = {
     0x39,0x76,0x5B, //CH2
     0x39,0x76,0x4F, //CH3
     0x39,0x76,0x66, //CH4  //19
-    0x77,0x38,0x38  //ALL  //20
+    0x77,0x38,0x38, //ALL  //20
+    0x50,0x1C,0x54, //RUN  //21
+    0x6C,0x79,0x78, //SET  //22
+    0x37,0x79,0x54, //MEN  //23
+    0x74,0x5C,0x1C  //HOU  //24
 };
 
 /* 简单微秒延时（72MHz 系统时钟下粗延时） */
@@ -476,7 +480,7 @@ void CH_LED_switch(u8 ledch,u8 err,u8 onoff)
 void TM1639_Display_UVLED_Char(DISPLAY_ENUM pos)
 {
     uint8_t seg = 0,i = 0;
-    if(pos > DISPLAY_ALL) pos = DISPLAY_ALL;
+    if(pos >= THE_END) return;
     
     for(i = 0; i < 3; i++)
     {

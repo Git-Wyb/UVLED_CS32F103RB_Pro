@@ -9,6 +9,11 @@ void PHY_UvLed_Refresh(void)
     //CH_LED_switch(PHY_CH[3].Uvch, PHY_CH[0].Error, PHY_CH[0].Uvon);
 }
 
+u8 _check_uvled_err(void)
+{
+    return (PHY_CH[0].Error_Curr!=0 || PHY_CH[1].Error_Curr!=0 || PHY_CH[2].Error_Curr!=0 || PHY_CH[3].Error_Curr!=0);
+}
+
 void PHY_Set_UVLed_Time(u16 time)
 {
     u8 i = 0;
@@ -54,6 +59,7 @@ void PHY_UVLed_CheckIn(void)
                 timer1_channel_gpiomode(ch,1,0);
                 Timer_Uvon[ch].uvontimer = 0;
                 Timer_Uvon[ch].uvoff_flag = 0;
+                CH_LED_switch(ch,PHY_CH[ch].Error,0);
             }
         }
         else 

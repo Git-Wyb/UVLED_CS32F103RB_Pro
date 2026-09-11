@@ -11,6 +11,7 @@ u16 time_keyscan = 0;
 BaseFlagStu Flag0 = {0};
 KEYSTU KeySta = {0};
 KEYSTU KeyStaNow = {0};
+KEYSTU KeyStaFlag = {0};
 u8 keysta_last = 0;
 NUMSTU UV_Time[4] = {0};
 CH_STU PHY_CH[CHNUM] = {0};
@@ -22,6 +23,8 @@ u16 time_adc_conv = 50;
 u16 uvled_time = 0;
 CH_UVON Timer_Uvon[4] = {0};
 BaseFlagStu UVCh_Check = {0};
+Proj_Stu Set_Mode = {0};
+u8 time_adc_wait = 0;
 
 //system_clock = 72MHz.
 void RCC_Configuration(void)

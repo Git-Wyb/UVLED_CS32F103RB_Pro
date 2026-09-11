@@ -10,5 +10,6 @@ void PHY_UVLed_Select(u8 ch);
 void PHY_Set_UVLed_Time(u16 time);
 void PHY_UVon_ChLed(void);
 void PHY_UVLed_CheckIn(void);
+u8 _check_uvled_err(void);
 
 #endif

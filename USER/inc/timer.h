@@ -19,7 +19,7 @@ void Init_Timer2(void);
 void Init_Timer3(void);
 void Bueezr_Switch(u8 sta);
 void wait_ms(u16 ms);
-void UV_LED_PwmSet(CH_ENUM channel, u8 pwm);
+void UV_LED_PwmSet(u8 channel, u8 pwm);
 void UV_LED_Switch(void);
 void timer1_channel_gpiomode(u8 chn,u8 type, u8 lev);
 void _Bueezr_Handle(void);

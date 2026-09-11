@@ -21,6 +21,28 @@ typedef float f32;
 #define CHECK2      0x02
 #define CHECK_NONE  0x03
 
+typedef enum
+{
+    RUN_MODE = 0,
+    SETTING_MODE,
+    MENU_MODE,
+    HOUR_MODE,
+    MENU_MODE_SET
+}MODE;
+
+typedef struct{
+    u8 setval;
+}Setting_Stu;
+
+typedef struct{
+    Setting_Stu ext_input;
+    Setting_Stu trg_pri;
+    Setting_Stu buzzer_sw;
+    Setting_Stu opl_not;
+    Setting_Stu more_led;
+    Setting_Stu usart_baud;
+}Proj_Stu;
+
 typedef union{
     u8 Flag;
     struct
@@ -70,6 +92,7 @@ typedef struct{
     u8 Option;
     u8 Ready;
     u16 Current;
+    u8 Error_Curr;
 }CH_STU;
 
 typedef struct{
@@ -81,6 +104,9 @@ typedef struct{
 #define flag_rx_done    Flag0.b1
 #define flag_adc_ok     Flag0.b2
 #define flag_rx_head    Flag0.b3
+#define flag_error_over Flag0.b4
+#define flag_error_under Flag0.b5
+#define flag_adc_en     Flag0.b6
 
 extern BaseFlagStu Flag0;
 extern KEYSTU KeySta;
@@ -89,6 +115,7 @@ extern u16 time_10ms;
 extern u16 time_keyscan;
 extern u8 keysta_last;
 extern KEYSTU KeyStaNow;
+extern KEYSTU KeyStaFlag;
 extern NUMSTU UV_Time[4];
 extern CH_STU PHY_CH[CHNUM];
 extern u8 buzzer_num;
@@ -99,6 +126,8 @@ extern u16 time_adc_conv;
 extern u16 uvled_time;
 extern CH_UVON Timer_Uvon[4];
 extern BaseFlagStu UVCh_Check;
+extern Proj_Stu Set_Mode;
+extern u8 time_adc_wait;
 
 void Init_uvch(void);
 

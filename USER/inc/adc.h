@@ -9,5 +9,8 @@ void get_adc_val(void);
 u16 bubble_sort_average_value(u16 *buff,u16 len);
 void uvled_current_detection(void);
 void adc_dma_value(void);
+void uvled_current_error(void);
+void _UVLED_CurrCheck_Enable(void);
+void _UVLED_CurrCheck_Disable(void);
 
 #endif

@@ -35,10 +35,6 @@ void Init_Adc(void)
     gpio_mode_config(GPIOC, GPIO_PIN_1, GPIO_MODE_IN_ANALOG);
     gpio_mode_config(GPIOC, GPIO_PIN_3, GPIO_MODE_IN_ANALOG);
     
-     /* Specify high and low analog watchdog thresholds. */
-    //uint16_t v_high = ((1500 * 0xFFF) / 3300);
-    //uint16_t v_low = ((0 * 0xFFF) / 3300);
-    
     /* Configure ADC1 clock. */
     __RCU_APB2_CLK_ENABLE(RCU_APB2_PERI_ADC1);
     rcu_adcclk_config(RCU_ADCCLK_SEL_PCLK2_DIV6); //72 /6 = 12MHz
@@ -59,23 +55,7 @@ void Init_Adc(void)
     adc_regular_channel_config(ADC1, uvled_adc_ch[1], ADC_SAMPLE_TIME_55_5_CYCLE, 3);//Regular Group Conversion 3(adc_conv[2])
     adc_regular_channel_config(ADC1, uvled_adc_ch[2], ADC_SAMPLE_TIME_55_5_CYCLE, 4);//Regular Group Conversion 4(adc_conv[3])
     adc_regular_channel_config(ADC1, uvled_adc_ch[3], ADC_SAMPLE_TIME_55_5_CYCLE, 5);//Regular Group Conversion 5(adc_conv[4])
-    
-    /* Configure high and low analog watchdog thresholds. */
-    //adc_analog_wdt_threshold_set(ADC1, v_high, v_low);
-    
-    /* Configure channel1 as the single analog watchdog guarded channel. */
-    //adc_analog_channel_config(ADC1, ADC_CHANNEL_0);
-    //adc_analog_channel_config(ADC1, uvled_adc_ch[0]);
-    //adc_analog_channel_config(ADC1, uvled_adc_ch[1]);
-    //adc_analog_channel_config(ADC1, uvled_adc_ch[2]);
-    //adc_analog_channel_config(ADC1, uvled_adc_ch[3]);
-    
-    /* Enable analog watchdog on one regular channel. */
-    //adc_analog_wdt_config(ADC1, ADC_ANALOG_WDT_ALL_REG);
-    
-    /* Enable analog watchdog interrupt. */
-    //__ADC_INTR_ENABLE(ADC1, ADC_IT_ANALOG_WDT);
-    
+
     __ADC_DMA_ENABLE(ADC1);
     __DMA_ENABLE(DMA1_CHANNEL1);
     /* Enable ADC1. */
@@ -90,8 +70,6 @@ void Init_Adc(void)
     __ADC_CALI_START(ADC1);
     /* Check the end of ADC1 calibration. */
     while(__ADC_CALI_STATUS_GET(ADC1));
-
-    //adc_nvic_config();
     
     __ADC_REG_CONV_START(ADC1);
 }
@@ -100,7 +78,7 @@ void Init_Adc(void)
 static void adc1_dma_config(void)
 {
     dma_config_t  dma_configStruct;
-//    nvic_config_t nvic_config_struct;
+    nvic_init_t nvic_config_struct;
     //Enable DMA1 clock  
     __RCU_AHB_CLK_ENABLE(RCU_AHB_PERI_DMA1);
     
@@ -120,45 +98,75 @@ static void adc1_dma_config(void)
     dma_init(DMA1_CHANNEL1, &dma_configStruct);
     
      /* Enable and set DMA1_CHANNEL1 Interrupt */
-    //nvic_config_struct.IRQn = IRQn_DMA1_CHANNEL1;
-    //nvic_config_struct.priority = 1;
-    //nvic_config_struct.enable_flag = ENABLE;
-    //nvic_init(&nvic_config_struct);
+    nvic_config_struct.nvic_irqchannel = IRQn_DMA1_Channel1;
+    nvic_config_struct.nvic_irq_pre_priority = 0;
+    nvic_config_struct.nvic_irq_sub_priority = 0;
+    nvic_config_struct.nvic_irq_enable = ENABLE;
+    nvic_init(&nvic_config_struct);
+    __DMA_INTR_ENABLE(DMA1_CHANNEL1,DMA_INTR_CMP);
 }
 #endif
 
-void adc_nvic_config(void)
+void _UVLED_CurrCheck_Enable(void)
 {
-    nvic_init_t ptr_nvic;
+    flag_adc_en = 1;
+    Init_Adc();
+    time_adc_wait = 50;
+}
     
-    /* Configure and enable ADC interrupt. */
-    ptr_nvic.nvic_irqchannel = IRQn_ADC1_2;
-    ptr_nvic.nvic_irq_enable = ENABLE;
-    ptr_nvic.nvic_irq_pre_priority = 0;
-    ptr_nvic.nvic_irq_sub_priority = 0;
-    nvic_init(&ptr_nvic);
+void _UVLED_CurrCheck_Disable(void)
+{
+    flag_adc_en = 0;
+    time_adc_wait = 0;
+    __ADC_REG_CONV_STOP(ADC1);
+    __ADC_DISABLE(ADC1);
+    __ADC_DMA_DISABLE(ADC1);
+    __DMA_INTR_DISABLE(DMA1_CHANNEL1,DMA_INTR_CMP);
+    __DMA_DISABLE(DMA1_CHANNEL1);
 }
 
-void ADC1_2_IRQHandler(void)
+u8 ich = 0;
+void DMA1_Channel1_IRQHandler(void)
 {
-    __ADC_FLAG_CLEAR(ADC1, ADC_FLAG_ANALOG_WDT);
-}
-
-u8 adci = 0;
-void get_adc_val(void)
-{
-    if(SET == __ADC_FLAG_STATUS_GET(ADC1, ADC_FLAG_EOC))
+    if(__DMA1_FLAG_STATUS_GET(DMA1_FLAG_CMP1) == SET)
     {
-        __ADC_FLAG_CLEAR(ADC1,ADC_FLAG_EOC);
-        Adc_Value_Buff[0][adci++] = __ADC_CONV_VALUE_GET(ADC1);
-        if(adci > 6)
+        __DMA1_FLAG_CLEAR(DMA1_FLAG_CMP1);
+        if(time_adc_wait == 0)
         {
-            adci = 0;
+            Low_Valtage = (adc_conv[0] * 3300) / 4095;
+            PHY_CH[0].Current = (adc_conv[1] * 3300) / 4095;
+            PHY_CH[1].Current = (adc_conv[2] * 3300) / 4095;
+            PHY_CH[2].Current = (adc_conv[3] * 3300) / 4095;
+            PHY_CH[3].Current = (adc_conv[4] * 3300) / 4095;
             flag_adc_ok = 1;
-            adc_ch1 = bubble_sort_average_value(&Adc_Value_Buff[0][0],7);
+            for(ich = 0; ich < 4; ich++)
+            {
+                if(PHY_CH[ich].Uvon == 1)
+                {
+                    if(PHY_CH[ich].Current < 20) 
+                    {
+                        PHY_CH[ich].Error_Curr = 1;
+                        Bueezr_Config(200,0,0);
+                        PHY_CH[ich].Uvon = 0;
+                        timer1_channel_gpiomode(ich,1,0);
+                    }
+                    else if(PHY_CH[ich].Current > 2400)
+                    {
+                        PHY_CH[ich].Error_Curr = 2;
+                        Bueezr_Config(200,0,0);
+                        PHY_CH[ich].Uvon = 0;
+                        timer1_channel_gpiomode(ich,1,0);
+                    }
+                    else
+                    {
+                        
+                    }
+                }
+            }
         }
     }
 }
+
 
 u8 vy = 0;
 u8 vx = 0;
@@ -182,23 +190,56 @@ void adc_dma_value(void)
     }
 }
 
+void uvled_current_error(void)
+{
+    u8 ch = 0;
+    u16 x = 0;
+    for(ch = 0; ch < 4; ch++)
+    {
+        if(PHY_CH[ch].Error_Curr == 2 && flag_error_over == 0)
+        {
+            flag_error_over = 1;
+            if(ch == 0) x = 666;
+            if(ch == 1) x = 777;
+            if(ch == 2) x = 888;
+            if(ch == 3) x = 999;
+            TM1639_DisplayNum(x);
+            Timer_Uvon[ch].uvontimer = 0;
+            Timer_Uvon[ch].uvoff_flag = 0;
+            CH_LED_switch(ch,PHY_CH[ch].Error_Curr,1);
+        }
+        else if(PHY_CH[ch].Error_Curr == 1 && flag_error_under == 0)
+        {
+            flag_error_under = 1;
+            if(ch == 0) x = 111;
+            if(ch == 1) x = 222;
+            if(ch == 2) x = 333;
+            if(ch == 3) x = 444;
+            TM1639_DisplayNum(x);
+            Timer_Uvon[ch].uvontimer = 0;
+            Timer_Uvon[ch].uvoff_flag = 0;
+            CH_LED_switch(ch,PHY_CH[ch].Error_Curr,1);
+        }
+    }
+}
+
 void uvled_current_detection(void)
 {
     u8 i = 0;
     if(flag_adc_ok == 1)
     {
         flag_adc_ok = 0;
-        Low_Valtage = ((bubble_sort_average_value(&Adc_Value_Buff[0][0],7) * 3300) / 4095);
-        PHY_CH[0].Current = ((bubble_sort_average_value(&Adc_Value_Buff[1][0],7) * 3300) / 4095);
-        PHY_CH[1].Current = ((bubble_sort_average_value(&Adc_Value_Buff[2][0],7) * 3300) / 4095);
-        PHY_CH[2].Current = ((bubble_sort_average_value(&Adc_Value_Buff[3][0],7) * 3300) / 4095);
-        PHY_CH[3].Current = ((bubble_sort_average_value(&Adc_Value_Buff[4][0],7) * 3300) / 4095);
-
+        //Low_Valtage = ((bubble_sort_average_value(&Adc_Value_Buff[0][0],7) * 3300) / 4095);
+        //PHY_CH[0].Current = ((bubble_sort_average_value(&Adc_Value_Buff[1][0],7) * 3300) / 4095);
+        //PHY_CH[1].Current = ((bubble_sort_average_value(&Adc_Value_Buff[2][0],7) * 3300) / 4095);
+        //PHY_CH[2].Current = ((bubble_sort_average_value(&Adc_Value_Buff[3][0],7) * 3300) / 4095);
+        //PHY_CH[3].Current = ((bubble_sort_average_value(&Adc_Value_Buff[4][0],7) * 3300) / 4095);
+/*
         for(i = 0; i < 4; i++)
         {
             if(PHY_CH[i].Uvon == 1)
             {
-                if(PHY_CH[i].Current > 2000)
+                if(PHY_CH[i].Current > 2400)
                 {
                     //wait_ms(50);
                     PHY_CH[i].Uvon = 0;
@@ -206,24 +247,26 @@ void uvled_current_detection(void)
                     timer1_channel_gpiomode(i,1,0);
                     Timer_Uvon[i].uvontimer = 0;
                     Timer_Uvon[i].uvoff_flag = 0;
-                    CH_LED_switch(i, 0, 0);
-                }/*
-                else if(PHY_CH[i].Current < 5)
+                    CH_LED_switch(i, 1, 1);
+                }
+                else if(PHY_CH[i].Current < 20)
                 {
                     //wait_ms(50);
                     PHY_CH[i].Uvon = 0;
                     PHY_CH[i].Time = 0;
                     timer1_channel_gpiomode(i,1,0);
+                    Timer_Uvon[i].uvontimer = 0;
+                    Timer_Uvon[i].uvoff_flag = 0;
                     CH_LED_switch(i, 1, 1);
-                }*/
+                }
             }
-        }
+        }*/
         if(Low_Valtage <= 1600)
         {
             gpio_mode_config(GPIOC, GPIO_PIN_13, GPIO_MODE_OUT_PP(GPIO_SPEED_HIGH));
             __GPIO_PIN_RESET(GPIOC,GPIO_PIN_13);
         }
-        __ADC_REG_CONV_START(ADC1);
+        //__ADC_REG_CONV_START(ADC1);
     }
 }
 

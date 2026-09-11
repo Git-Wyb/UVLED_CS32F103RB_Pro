@@ -7,6 +7,7 @@
 #include "cs32f10x_tim.h"
 #include "cs32f10x_gpio.h"
 #include "TM1639.h"
+#include "adc.h"
 
 u16 timer_ch_buff[] = {GPIO_PIN_8,GPIO_PIN_9,GPIO_PIN_10,GPIO_PIN_11};
 
@@ -24,6 +25,17 @@ u16 pwm_buf[100] = {7,   14, 22, 29, 36, 43, 50, 58, 65, 72,
 
 u16 level_buff[100] = {0,144,166,180,194,208,223};
 
+//75K
+u16 pwm75k_buf[100] = {10,  19, 29, 38, 48, 58, 67, 77, 86, 96,
+                       106,115,125,134,144,154,163,173,182,192,
+                       202,211,221,230,240,250,259,269,278,288,
+                       298,307,317,326,336,346,355,365,374,384,
+                       394,403,413,422,432,442,451,461,470,480,
+                       490,499,509,518,528,538,547,557,566,576,
+                       586,595,605,614,624,634,643,653,662,672,
+                       682,691,701,710,720,730,739,749,758,768,
+                       778,787,797,806,816,826,835,845,854,864,
+                       874,883,893,902,912,922,931,941,950,960};
 
 void Init_Timer3(void)
 {
@@ -63,6 +75,7 @@ void TIM3_IRQHandler(void)
         if(time_ms) time_ms--;
         if(time_keyscan) time_keyscan--;
         if(time_adc_conv) time_adc_conv--;
+        if(flag_adc_en && time_adc_wait) time_adc_wait--;
         time_10ms++;
         if(time_10ms >= 100)
         {
@@ -301,6 +314,7 @@ void UV_LED_Switch(void)
                 timer1_channel_gpiomode(channel,1,0);
                 Timer_Uvon[channel].uvontimer = 0;
                 Timer_Uvon[channel].uvoff_flag = 0;
+                _UVLED_CurrCheck_Disable();
             }
             else //uv led on
             {
@@ -314,6 +328,7 @@ void UV_LED_Switch(void)
                     tim_pwm_output_enable_ctrl(TIM1,channel,PHY_CH[channel].Uvon);
                 }
                 Timer_Uvon[channel].uvontimer = PHY_CH[channel].Time;
+                if(flag_adc_en == 0) _UVLED_CurrCheck_Enable();
             }
         }
     }
@@ -328,7 +343,7 @@ u8 Check_UvLed_Sta(void)
 }
  
 #if (FREQ_PWM == 50)
-void UV_LED_PwmSet(CH_ENUM channel, u8 pwm)
+void UV_LED_PwmSet(u8 channel, u8 pwm)
 {
     if(pwm > 100) pwm = 100;
     if(pwm == 0) pwm = 1;
@@ -349,6 +364,31 @@ void UV_LED_PwmSet(CH_ENUM channel, u8 pwm)
     {
         PHY_CH[channel].Level = pwm;
         TIM1->CHXCCVAL[channel] = pwm_buf[pwm-1] * 2;
+    }
+}
+
+#elif (FREQ_PWM == 75)
+void UV_LED_PwmSet(CH_ENUM channel, u8 pwm)
+{
+    if(pwm > 100) pwm = 100;
+    if(pwm == 0) pwm = 1;
+    if(channel > CHNUM) return;
+    
+    if(channel == UVLED_CH_ALL)
+    {
+        PHY_CH[TIM_CHANNEL_1].Level = pwm;
+        PHY_CH[TIM_CHANNEL_2].Level = pwm;
+        PHY_CH[TIM_CHANNEL_3].Level = pwm;
+        PHY_CH[TIM_CHANNEL_4].Level = pwm;
+        TIM1->CHXCCVAL[TIM_CHANNEL_1] = pwm75k_buf[pwm-1];
+        TIM1->CHXCCVAL[TIM_CHANNEL_2] = pwm75k_buf[pwm-1];
+        TIM1->CHXCCVAL[TIM_CHANNEL_3] = pwm75k_buf[pwm-1];
+        TIM1->CHXCCVAL[TIM_CHANNEL_4] = pwm75k_buf[pwm-1];
+    }
+    else
+    {
+        PHY_CH[channel].Level = pwm;
+        TIM1->CHXCCVAL[channel] = pwm75k_buf[pwm-1];
     }
 }
 
