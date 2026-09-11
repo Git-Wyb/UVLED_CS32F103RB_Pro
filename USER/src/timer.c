@@ -151,9 +151,12 @@ void Buzzer_Switch(enable_state_t sta)
 
 void Bueezr_Config(u16 ontime, u16 offtime, u8 num)
 {
-    time_buzzer_on = ontime;
-    time_buzzer_off = offtime;
-    buzzer_num = num;
+    if(Set_Mode.buzzer_sw.setval)
+    {
+        time_buzzer_on = ontime;
+        time_buzzer_off = offtime;
+        buzzer_num = num;
+    }
 }
 
 void _Bueezr_Handle(void)

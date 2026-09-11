@@ -128,6 +128,7 @@ extern CH_UVON Timer_Uvon[4];
 extern BaseFlagStu UVCh_Check;
 extern Proj_Stu Set_Mode;
 extern u8 time_adc_wait;
+extern u8 time_keysta_del;
 
 void Init_uvch(void);
 

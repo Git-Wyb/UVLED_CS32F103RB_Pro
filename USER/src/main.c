@@ -22,6 +22,7 @@ int main(void)
     Init_Timer1(); //f=50k
     Init_Timer3();
     //Init_Adc();
+    Set_Mode.buzzer_sw.setval = 1;
     Bueezr_Config(200,0,0);
     //Init_Usart1(9600);
     Init_TM1639();

@@ -38,6 +38,9 @@ u8 _scnt = 0;
 u8 m_mode_cnt = 0;
 u8 _bf_cnt = 0;
 u8 _sec_menu_cnt = 0;
+u8 _mcnt = 0;
+u8 _menuset_cnt = 0;
+u8 run_ch = 0;
 u8 fbuff[11] = {0,1,2,3,5,10,15,20,50,100};
 
 void Key_Handle(void)
@@ -352,7 +355,11 @@ void Key_Up_Scan(void)
     }else 
     {
         upcnt = 0;
-        if(KeySta.Up == 0) KeyStaNow.Up = 0;
+        if(KeySta.Up == 0) 
+        {
+            KeyStaNow.Up = 0;
+            KeyStaFlag.Up = 0;
+        }
     }
 }
 
@@ -370,7 +377,11 @@ void Key_Down_Scan(void)
     }else 
     {
         downcnt = 0;
-        if(KeySta.Down == 0) KeyStaNow.Down = 0;
+        if(KeySta.Down == 0) 
+        {
+            KeyStaNow.Down = 0;
+            KeyStaFlag.Down = 0;
+        }
     }
 }
 
@@ -392,6 +403,7 @@ void Key_Set_Scan(void)
         {
             KeyStaNow.Set = 0;
             KeyStaFlag.Set = 0;
+            _menuset_cnt = 0;
         }
     }
 }
@@ -454,7 +466,11 @@ void Key_Uvon_Scan(void)
     }else 
     {
         uvoncnt = 0;
-        if(KeySta.Uvon == 0) KeyStaNow.Uvon = 0;
+        if(KeySta.Uvon == 0)
+        {
+            KeyStaNow.Uvon = 0;
+            KeyStaFlag.Uvon = 0;
+        }
     }
 }
 
@@ -472,7 +488,11 @@ void Key_Ch_Scan(void)
     }else 
     {
         chcnt = 0;
-        if(KeySta.Ch == 0) KeyStaNow.Ch = 0;
+        if(KeySta.Ch == 0)
+        {
+            KeyStaNow.Ch = 0;
+            KeyStaFlag.Ch = 0;
+        }
     }
 }
 
@@ -490,7 +510,11 @@ void Key_Mode_Scan(void)
     }else 
     {
         modecnt = 0;
-        if(KeySta.Mode == 0) KeyStaNow.Mode = 0;
+        if(KeySta.Mode == 0)
+        {
+            KeyStaNow.Mode = 0;
+            KeyStaFlag.Mode = 0;
+        }
     }
 }
 #endif
@@ -502,12 +526,12 @@ void PHY_UvLed_Mode_Handle(void)
         if(rs_mode != SETTING_MODE)
         {
             rs_mode = SETTING_MODE;
-            TM1639_Display_UVLED_Char(DISPLAY_SETTING);
+            PHY_Mode_Switch(rs_mode);
         }
         else
         {
             rs_mode = RUN_MODE;
-            TM1639_Display_UVLED_Char(DISPLAY_RUN);
+            PHY_Mode_Switch(rs_mode);
         }
         _clear_KeyStaFlag();
     }
@@ -516,8 +540,16 @@ void PHY_UvLed_Mode_Handle(void)
         case RUN_MODE:
             if(KeyStaFlag.Uvon)
             {
-                
                 _clear_KeyStaFlag();
+            }
+            else if(KeyStaFlag.Ch)
+            {
+                _clear_KeyStaFlag();
+                run_ch++;
+                if(run_ch > 5) run_ch = 1;
+                TM1639_Display_UVLED_Char(run_ch+15);
+                PHY_UVLed_Select(run_ch);
+                PHY_Light_ModeLED(LED_OFF);
             }
             break;
         
@@ -531,26 +563,25 @@ void PHY_UvLed_Mode_Handle(void)
                 }
                 if(KeyStaFlag.Bk)
                 {
-                    TM1639_Display_UVLED_Char(DISPLAY_MENU);
                     _clear_KeyStaFlag();
                     rs_mode = MENU_MODE;
+                    PHY_Mode_Switch(rs_mode);
                 }
                 else if(KeyStaFlag.Fw)
                 {
-                    TM1639_Display_UVLED_Char(DISPLAY_HOUR);
                     _clear_KeyStaFlag();
                     rs_mode = HOUR_MODE;
+                    PHY_Mode_Switch(rs_mode);
                 }
             }
             else if(KeyStaFlag.Ch)
             {
                 _clear_KeyStaFlag();
                 chnum++;
-                if(chnum > 5) chnum = 1;
+                if(chnum > 4) chnum = 1;
                 TM1639_Display_UVLED_Char(chnum+15);
                 PHY_UVLed_Select(chnum);
-                TM1639_LED_switch(LED_LEVEL,0);
-                TM1639_LED_switch(LED_TIME,0);
+                PHY_Light_ModeLED(LED_OFF);
             }
             else if(KeyStaFlag.Up)
             {
@@ -599,36 +630,55 @@ void PHY_UvLed_Mode_Handle(void)
             break;
             
         case MENU_MODE:
-            if(KeyStaFlag.Bk && KeyStaFlag.Fw)
+            if(KeyStaFlag.Byte != 0)
             {
-                _bf_cnt++;
-                if(_bf_cnt >= 150) //3s
+                _mcnt++;
+                if(_mcnt >= 4) //80ms
                 {
-                    _bf_cnt = 0;
-                    Bueezr_Config(200,0,0);
+                    _mcnt = 0;
+                    if(KeyStaFlag.Bk && KeyStaFlag.Fw)
+                    {
+                        _bf_cnt++;
+                        if(_bf_cnt >= 37) //3s
+                        {
+                            _bf_cnt = 0;
+                            Bueezr_Config(200,0,0);
+                            _clear_KeyStaFlag();
+                        }
+                    }
+                    else if(KeyStaFlag.Bk)
+                    {
+                        _clear_KeyStaFlag();
+                        m_mode_cnt++;
+                        if(m_mode_cnt > 6) m_mode_cnt = 1;
+                        menuset_handle(0,m_mode_cnt,0);
+                    }
+                    else if(KeyStaFlag.Fw)
+                    {
+                        _clear_KeyStaFlag();
+                        if(m_mode_cnt != 0) m_mode_cnt--;
+                        if(m_mode_cnt == 0) m_mode_cnt = 6;
+                        menuset_handle(0,m_mode_cnt,0);
+                    }
+                    else if(KeyStaFlag.Set)
+                    {
+                        _menuset_cnt++;
+                        if(_menuset_cnt < 2)
+                        {
+                            menuset_handle(1,m_mode_cnt,_sec_menu_cnt);
+                            rs_mode = MENU_MODE_SET;
+                        }
+                        if(_menuset_cnt >= 37) //3s
+                        {
+                            _menuset_cnt = 0;
+                            _clear_KeyStaFlag();
+                            Bueezr_Config(200,0,0);
+                            rs_mode = SETTING_MODE;
+                            PHY_Mode_Switch(rs_mode);
+                        }
+                    }
                 }
-                _clear_KeyStaFlag();
-            }
-            else if(KeyStaFlag.Bk)
-            {
-                _clear_KeyStaFlag();
-                m_mode_cnt++;
-                if(m_mode_cnt > 6) m_mode_cnt = 1;
-                menuset_handle(0,m_mode_cnt,0);
-            }
-            else if(KeyStaFlag.Fw)
-            {
-                _clear_KeyStaFlag();
-                if(m_mode_cnt != 0) m_mode_cnt--;
-                if(m_mode_cnt == 0) m_mode_cnt = 6;
-                menuset_handle(0,m_mode_cnt,0);
-            }
-            else if(KeyStaFlag.Set)
-            {
-                _clear_KeyStaFlag();
-                menuset_handle(1,m_mode_cnt,_sec_menu_cnt);
-                rs_mode = MENU_MODE_SET;
-            }
+            }else _mcnt = 0;
             break;
         
         case HOUR_MODE:
@@ -651,10 +701,90 @@ void PHY_UvLed_Mode_Handle(void)
             }
             else if(KeyStaFlag.Set)
             {
-                _clear_KeyStaFlag();
-                menuset_handle(0,m_mode_cnt,0);
-                rs_mode = MENU_MODE;
+                _menuset_cnt++;
+                if(_menuset_cnt < 2)
+                {
+                    menuset_handle(0,m_mode_cnt,0);
+                    rs_mode = MENU_MODE;
+                }
+                if(_menuset_cnt >= 150) //3s
+                {
+                    _menuset_cnt = 0;
+                    _clear_KeyStaFlag();
+                    Bueezr_Config(200,0,0);
+                    rs_mode = SETTING_MODE;
+                    PHY_Mode_Switch(rs_mode);
+                }
             }
+            break;
+    }
+}
+
+void PHY_Mode_Switch(MODE mode)
+{
+    switch(mode)
+    {
+        case RUN_MODE:
+            TM1639_Display_UVLED_Char(DISPLAY_RUN);
+            break;
+        
+        case SETTING_MODE:
+            TM1639_Display_UVLED_Char(DISPLAY_SETTING);
+            break;
+        
+        case MENU_MODE:
+            m_mode_cnt = 1;
+            PHY_Light_ModeLED(LED_MENU);
+            TM1639_Display_UVLED_Char(DISPLAY_Ein);
+            break;
+        
+        case HOUR_MODE:
+            PHY_Light_ModeLED(LED_HOUR);
+            TM1639_Display_UVLED_Char(DISPLAY_HOUR);
+            break;
+        
+        case MENU_MODE_SET:
+            break;
+    }
+}
+
+void PHY_Light_ModeLED(LED_ENUM mode)
+{
+    switch(mode)
+    {
+        case LED_LEVEL:
+            TM1639_LED_switch(LED_LEVEL,1);
+            TM1639_LED_switch(LED_TIME,0);
+            TM1639_LED_switch(LED_MENU,0);
+            TM1639_LED_switch(LED_HOUR,0);
+            break;
+        
+        case LED_TIME:
+            TM1639_LED_switch(LED_LEVEL,0);
+            TM1639_LED_switch(LED_TIME,1);
+            TM1639_LED_switch(LED_MENU,0);
+            TM1639_LED_switch(LED_HOUR,0);
+            break;
+        
+        case LED_MENU:
+            TM1639_LED_switch(LED_LEVEL,0);
+            TM1639_LED_switch(LED_TIME,0);
+            TM1639_LED_switch(LED_MENU,1);
+            TM1639_LED_switch(LED_HOUR,0);
+            break;
+        
+        case LED_HOUR:
+            TM1639_LED_switch(LED_LEVEL,0);
+            TM1639_LED_switch(LED_TIME,0);
+            TM1639_LED_switch(LED_MENU,0);
+            TM1639_LED_switch(LED_HOUR,1);
+            break;
+        
+        default:
+            TM1639_LED_switch(LED_LEVEL,0);
+            TM1639_LED_switch(LED_TIME,0);
+            TM1639_LED_switch(LED_MENU,0);
+            TM1639_LED_switch(LED_HOUR,0);
             break;
     }
 }
@@ -664,6 +794,8 @@ void _clear_KeyStaFlag(void)
     KeyStaFlag.Byte = 0;
     _scnt = 0;
     _bf_cnt = 0;
+    _mcnt = 0;
+    _menuset_cnt = 0;
 }
 
 void menuset_handle(u8 type,u8 set,u8 opt)
@@ -708,12 +840,12 @@ void menuset_handle(u8 type,u8 set,u8 opt)
             {
                 if(opt == 0) 
                 {
-                    TM1639_Display_UVLED_Char(DISPLAY_on);
+                    TM1639_Display_UVLED_Char(DISPLAY_oFF);
                     Set_Mode.buzzer_sw.setval = 0;
                 }
                 else
                 {
-                    TM1639_Display_UVLED_Char(DISPLAY_oFF);
+                    TM1639_Display_UVLED_Char(DISPLAY_on);
                     Set_Mode.buzzer_sw.setval = 1;
                 }
             }
@@ -724,12 +856,12 @@ void menuset_handle(u8 type,u8 set,u8 opt)
             {
                 if(opt == 0) 
                 {
-                    TM1639_Display_UVLED_Char(DISPLAY_on);
+                    TM1639_Display_UVLED_Char(DISPLAY_oFF);
                     Set_Mode.opl_not.setval = 0;
                 }
                 else
                 {
-                    TM1639_Display_UVLED_Char(DISPLAY_oFF);
+                    TM1639_Display_UVLED_Char(DISPLAY_on);
                     Set_Mode.opl_not.setval = 1;
                 }
             }
@@ -740,12 +872,12 @@ void menuset_handle(u8 type,u8 set,u8 opt)
             {
                 if(opt == 0) 
                 {
-                    TM1639_Display_UVLED_Char(DISPLAY_on);
+                    TM1639_Display_UVLED_Char(DISPLAY_oFF);
                     Set_Mode.more_led.setval = 0;
                 }
                 else
                 {
-                    TM1639_Display_UVLED_Char(DISPLAY_oFF);
+                    TM1639_Display_UVLED_Char(DISPLAY_on);
                     Set_Mode.more_led.setval = 1;
                 }
             }

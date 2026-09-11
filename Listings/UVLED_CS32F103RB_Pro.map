@@ -19,11 +19,11 @@ Section Cross References
     main.o(i.main) refers to adc.o(i.uvled_current_detection) for uvled_current_detection
     main.o(i.main) refers to uvled.o(i.PHY_UVon_ChLed) for PHY_UVon_ChLed
     main.o(i.main) refers to adc.o(i.uvled_current_error) for uvled_current_error
+    main.o(i.main) refers to sys.o(.data) for Set_Mode
     main.o(i.main) refers to sys.o(.bss) for PHY_CH
-    main.o(i.main) refers to sys.o(.data) for time_keyscan
     sys.o(i.Init_uvch) refers to sys.o(.bss) for PHY_CH
     gpio.o(i.Init_Gpio) refers to cs32f10x_gpio.o(i.gpio_mode_config) for gpio_mode_config
-    timer.o(i.Bueezr_Config) refers to sys.o(.data) for time_buzzer_on
+    timer.o(i.Bueezr_Config) refers to sys.o(.data) for Set_Mode
     timer.o(i.Buzzer_Switch) refers to timer.o(i.Init_Timer2) for Init_Timer2
     timer.o(i.Buzzer_Switch) refers to cs32f10x_tim.o(i.tim_chcc_enable_ctrl) for tim_chcc_enable_ctrl
     timer.o(i.Buzzer_Switch) refers to cs32f10x_gpio.o(i.gpio_mode_config) for gpio_mode_config
@@ -149,32 +149,17 @@ Section Cross References
     uvled.o(i.PHY_UVLed_CheckIn) refers to tm1639.o(i.CH_LED_switch) for CH_LED_switch
     uvled.o(i.PHY_UVLed_CheckIn) refers to sys.o(.data) for UVCh_Check
     uvled.o(i.PHY_UVLed_CheckIn) refers to sys.o(.bss) for PHY_CH
+    uvled.o(i.PHY_UVLed_Select) refers to tm1639.o(i.CH_LED_switch) for CH_LED_switch
     uvled.o(i.PHY_UVLed_Select) refers to sys.o(.bss) for PHY_CH
     uvled.o(i.PHY_UVon_ChLed) refers to tm1639.o(i.CH_LED_switch) for CH_LED_switch
     uvled.o(i.PHY_UVon_ChLed) refers to sys.o(.bss) for Timer_Uvon
     uvled.o(i._check_uvled_err) refers to sys.o(.bss) for PHY_CH
-    application.o(i.Key_Bk_Scan) refers to timer.o(i.Check_UvLed_Sta) for Check_UvLed_Sta
-    application.o(i.Key_Bk_Scan) refers to tm1639.o(i.TM1639_DisplayNum) for TM1639_DisplayNum
-    application.o(i.Key_Bk_Scan) refers to uvled.o(i.PHY_Set_UVLed_Time) for PHY_Set_UVLed_Time
-    application.o(i.Key_Bk_Scan) refers to tm1639.o(i.TM1639_LED_switch) for TM1639_LED_switch
     application.o(i.Key_Bk_Scan) refers to sys.o(.data) for KeySta
     application.o(i.Key_Bk_Scan) refers to application.o(.data) for bkcnt
-    application.o(i.Key_Ch_Scan) refers to timer.o(i.Check_UvLed_Sta) for Check_UvLed_Sta
-    application.o(i.Key_Ch_Scan) refers to tm1639.o(i.TM1639_Display_UVLED_Char) for TM1639_Display_UVLED_Char
-    application.o(i.Key_Ch_Scan) refers to uvled.o(i.PHY_UVLed_Select) for PHY_UVLed_Select
-    application.o(i.Key_Ch_Scan) refers to tm1639.o(i.TM1639_LED_switch) for TM1639_LED_switch
     application.o(i.Key_Ch_Scan) refers to sys.o(.data) for KeySta
     application.o(i.Key_Ch_Scan) refers to application.o(.data) for chcnt
-    application.o(i.Key_Down_Scan) refers to timer.o(i.Check_UvLed_Sta) for Check_UvLed_Sta
-    application.o(i.Key_Down_Scan) refers to timer.o(i.UV_LED_PwmSet) for UV_LED_PwmSet
-    application.o(i.Key_Down_Scan) refers to tm1639.o(i.TM1639_DisplayNum) for TM1639_DisplayNum
-    application.o(i.Key_Down_Scan) refers to tm1639.o(i.TM1639_LED_switch) for TM1639_LED_switch
     application.o(i.Key_Down_Scan) refers to sys.o(.data) for KeySta
     application.o(i.Key_Down_Scan) refers to application.o(.data) for downcnt
-    application.o(i.Key_Fw_Scan) refers to timer.o(i.Check_UvLed_Sta) for Check_UvLed_Sta
-    application.o(i.Key_Fw_Scan) refers to tm1639.o(i.TM1639_DisplayNum) for TM1639_DisplayNum
-    application.o(i.Key_Fw_Scan) refers to uvled.o(i.PHY_Set_UVLed_Time) for PHY_Set_UVLed_Time
-    application.o(i.Key_Fw_Scan) refers to tm1639.o(i.TM1639_LED_switch) for TM1639_LED_switch
     application.o(i.Key_Fw_Scan) refers to sys.o(.data) for KeySta
     application.o(i.Key_Fw_Scan) refers to application.o(.data) for fwcnt
     application.o(i.Key_Handle) refers to application.o(i.Key_Up_Scan) for Key_Up_Scan
@@ -185,36 +170,27 @@ Section Cross References
     application.o(i.Key_Handle) refers to application.o(i.Key_Uvon_Scan) for Key_Uvon_Scan
     application.o(i.Key_Handle) refers to application.o(i.Key_Ch_Scan) for Key_Ch_Scan
     application.o(i.Key_Handle) refers to application.o(i.Key_Mode_Scan) for Key_Mode_Scan
-    application.o(i.Key_Mode_Scan) refers to tm1639.o(i.TM1639_Display_UVLED_Char) for TM1639_Display_UVLED_Char
-    application.o(i.Key_Mode_Scan) refers to tm1639.o(i.TM1639_LED_switch) for TM1639_LED_switch
-    application.o(i.Key_Mode_Scan) refers to tm1639.o(i.TM1639_DisplayNum) for TM1639_DisplayNum
+    application.o(i.Key_Handle) refers to application.o(i.PHY_UvLed_Mode_Handle) for PHY_UvLed_Mode_Handle
     application.o(i.Key_Mode_Scan) refers to sys.o(.data) for KeySta
     application.o(i.Key_Mode_Scan) refers to application.o(.data) for modecnt
-    application.o(i.Key_Mode_Scan) refers to sys.o(.bss) for PHY_CH
-    application.o(i.Key_Set_Scan) refers to timer.o(i.Check_UvLed_Sta) for Check_UvLed_Sta
-    application.o(i.Key_Set_Scan) refers to timer.o(i.UV_LED_PwmSet) for UV_LED_PwmSet
-    application.o(i.Key_Set_Scan) refers to tm1639.o(i.TM1639_DisplayNum) for TM1639_DisplayNum
-    application.o(i.Key_Set_Scan) refers to uvled.o(i.PHY_Set_UVLed_Time) for PHY_Set_UVLed_Time
-    application.o(i.Key_Set_Scan) refers to tm1639.o(i.TM1639_LED_switch) for TM1639_LED_switch
     application.o(i.Key_Set_Scan) refers to sys.o(.data) for KeySta
     application.o(i.Key_Set_Scan) refers to application.o(.data) for setcnt
-    application.o(i.Key_Up_Scan) refers to timer.o(i.Check_UvLed_Sta) for Check_UvLed_Sta
-    application.o(i.Key_Up_Scan) refers to timer.o(i.UV_LED_PwmSet) for UV_LED_PwmSet
-    application.o(i.Key_Up_Scan) refers to tm1639.o(i.TM1639_DisplayNum) for TM1639_DisplayNum
-    application.o(i.Key_Up_Scan) refers to tm1639.o(i.TM1639_LED_switch) for TM1639_LED_switch
     application.o(i.Key_Up_Scan) refers to sys.o(.data) for KeySta
     application.o(i.Key_Up_Scan) refers to application.o(.data) for upcnt
-    application.o(i.Key_Uvon_Scan) refers to tm1639.o(i.TM1639_SetBrightness) for TM1639_SetBrightness
-    application.o(i.Key_Uvon_Scan) refers to uvled.o(i._check_uvled_err) for _check_uvled_err
-    application.o(i.Key_Uvon_Scan) refers to timer.o(i.UV_LED_Switch) for UV_LED_Switch
     application.o(i.Key_Uvon_Scan) refers to sys.o(.data) for KeySta
     application.o(i.Key_Uvon_Scan) refers to application.o(.data) for uvoncnt
-    application.o(i.PHY_UvLed_Mode_Handle) refers to tm1639.o(i.TM1639_Display_UVLED_Char) for TM1639_Display_UVLED_Char
+    application.o(i.PHY_Light_ModeLED) refers to tm1639.o(i.TM1639_LED_switch) for TM1639_LED_switch
+    application.o(i.PHY_Mode_Switch) refers to tm1639.o(i.TM1639_Display_UVLED_Char) for TM1639_Display_UVLED_Char
+    application.o(i.PHY_Mode_Switch) refers to application.o(i.PHY_Light_ModeLED) for PHY_Light_ModeLED
+    application.o(i.PHY_Mode_Switch) refers to application.o(.data) for m_mode_cnt
+    application.o(i.PHY_UvLed_Mode_Handle) refers to application.o(i.PHY_Mode_Switch) for PHY_Mode_Switch
     application.o(i.PHY_UvLed_Mode_Handle) refers to application.o(i._clear_KeyStaFlag) for _clear_KeyStaFlag
+    application.o(i.PHY_UvLed_Mode_Handle) refers to tm1639.o(i.TM1639_Display_UVLED_Char) for TM1639_Display_UVLED_Char
     application.o(i.PHY_UvLed_Mode_Handle) refers to uvled.o(i.PHY_UVLed_Select) for PHY_UVLed_Select
-    application.o(i.PHY_UvLed_Mode_Handle) refers to tm1639.o(i.TM1639_LED_switch) for TM1639_LED_switch
+    application.o(i.PHY_UvLed_Mode_Handle) refers to application.o(i.PHY_Light_ModeLED) for PHY_Light_ModeLED
     application.o(i.PHY_UvLed_Mode_Handle) refers to timer.o(i.UV_LED_PwmSet) for UV_LED_PwmSet
     application.o(i.PHY_UvLed_Mode_Handle) refers to tm1639.o(i.TM1639_DisplayNum) for TM1639_DisplayNum
+    application.o(i.PHY_UvLed_Mode_Handle) refers to tm1639.o(i.TM1639_LED_switch) for TM1639_LED_switch
     application.o(i.PHY_UvLed_Mode_Handle) refers to uvled.o(i.PHY_Set_UVLed_Time) for PHY_Set_UVLed_Time
     application.o(i.PHY_UvLed_Mode_Handle) refers to timer.o(i.Bueezr_Config) for Bueezr_Config
     application.o(i.PHY_UvLed_Mode_Handle) refers to application.o(i.menuset_handle) for menuset_handle
@@ -538,6 +514,9 @@ Removing Unused input sections from the image.
     Removing timer.o(.rev16_text), (4 bytes).
     Removing timer.o(.revsh_text), (4 bytes).
     Removing timer.o(.rrx_text), (6 bytes).
+    Removing timer.o(i.Check_UvLed_Sta), (52 bytes).
+    Removing timer.o(i.UV_LED_Switch), (312 bytes).
+    Removing timer.o(i.tim_pwm_output_enable_ctrl), (44 bytes).
     Removing timer.o(i.wait_ms), (20 bytes).
     Removing usart.o(.rev16_text), (4 bytes).
     Removing usart.o(.revsh_text), (4 bytes).
@@ -547,6 +526,10 @@ Removing Unused input sections from the image.
     Removing adc.o(.rev16_text), (4 bytes).
     Removing adc.o(.revsh_text), (4 bytes).
     Removing adc.o(.rrx_text), (6 bytes).
+    Removing adc.o(i.Init_Adc), (376 bytes).
+    Removing adc.o(i._UVLED_CurrCheck_Disable), (92 bytes).
+    Removing adc.o(i._UVLED_CurrCheck_Enable), (36 bytes).
+    Removing adc.o(i.adc1_dma_config), (140 bytes).
     Removing adc.o(i.adc_dma_value), (152 bytes).
     Removing adc.o(i.bubble_sort_average_value), (112 bytes).
     Removing iic.o(.rev16_text), (4 bytes).
@@ -567,12 +550,10 @@ Removing Unused input sections from the image.
     Removing uvled.o(.revsh_text), (4 bytes).
     Removing uvled.o(.rrx_text), (6 bytes).
     Removing uvled.o(i.PHY_UvLed_Refresh), (2 bytes).
+    Removing uvled.o(i._check_uvled_err), (44 bytes).
     Removing application.o(.rev16_text), (4 bytes).
     Removing application.o(.revsh_text), (4 bytes).
     Removing application.o(.rrx_text), (6 bytes).
-    Removing application.o(i.PHY_UvLed_Mode_Handle), (1084 bytes).
-    Removing application.o(i._clear_KeyStaFlag), (28 bytes).
-    Removing application.o(i.menuset_handle), (292 bytes).
     Removing cs32f10x_adc.o(.rev16_text), (4 bytes).
     Removing cs32f10x_adc.o(.revsh_text), (4 bytes).
     Removing cs32f10x_adc.o(.rrx_text), (6 bytes).
@@ -580,11 +561,13 @@ Removing Unused input sections from the image.
     Removing cs32f10x_adc.o(i.adc_analog_wdt_config), (16 bytes).
     Removing cs32f10x_adc.o(i.adc_analog_wdt_threshold_set), (6 bytes).
     Removing cs32f10x_adc.o(i.adc_disc_mode_channel_config), (12 bytes).
+    Removing cs32f10x_adc.o(i.adc_init), (64 bytes).
     Removing cs32f10x_adc.o(i.adc_inject_channel_config), (110 bytes).
     Removing cs32f10x_adc.o(i.adc_inject_conv_value_get), (14 bytes).
     Removing cs32f10x_adc.o(i.adc_inject_ext_trigger_config), (12 bytes).
     Removing cs32f10x_adc.o(i.adc_inject_offset_set), (10 bytes).
     Removing cs32f10x_adc.o(i.adc_inject_sequence_length_config), (16 bytes).
+    Removing cs32f10x_adc.o(i.adc_regular_channel_config), (166 bytes).
     Removing cs32f10x_adc.o(i.adc_struct_init), (20 bytes).
     Removing cs32f10x_bkp.o(.rev16_text), (4 bytes).
     Removing cs32f10x_bkp.o(.revsh_text), (4 bytes).
@@ -630,6 +613,8 @@ Removing Unused input sections from the image.
     Removing cs32f10x_dma.o(.rev16_text), (4 bytes).
     Removing cs32f10x_dma.o(.revsh_text), (4 bytes).
     Removing cs32f10x_dma.o(.rrx_text), (6 bytes).
+    Removing cs32f10x_dma.o(i.dma_def_init), (52 bytes).
+    Removing cs32f10x_dma.o(i.dma_init), (92 bytes).
     Removing cs32f10x_dma.o(i.dma_struct_config), (26 bytes).
     Removing cs32f10x_dma.o(i.dma_transfer_config), (40 bytes).
     Removing cs32f10x_exti.o(.rev16_text), (4 bytes).
@@ -710,6 +695,7 @@ Removing Unused input sections from the image.
     Removing cs32f10x_rcu.o(.rev16_text), (4 bytes).
     Removing cs32f10x_rcu.o(.revsh_text), (4 bytes).
     Removing cs32f10x_rcu.o(.rrx_text), (6 bytes).
+    Removing cs32f10x_rcu.o(i.rcu_adcclk_config), (20 bytes).
     Removing cs32f10x_rcu.o(i.rcu_clk_freq_get), (212 bytes).
     Removing cs32f10x_rcu.o(i.rcu_clkout_config), (20 bytes).
     Removing cs32f10x_rcu.o(i.rcu_clkready_reset_flag_get), (60 bytes).
@@ -817,7 +803,7 @@ Removing Unused input sections from the image.
     Removing cdrcmple.o(.text), (48 bytes).
     Removing depilogue.o(.text), (186 bytes).
 
-293 unused section(s) (total 12805 bytes) removed from the image.
+303 unused section(s) (total 12891 bytes) removed from the image.
 
 ==============================================================================
 
@@ -830,33 +816,33 @@ Image Symbol Table
     ../clib/../cmprslib/zerorunl.c           0x00000000   Number         0  __dczerorl.o ABSOLUTE
     ../clib/microlib/division.c              0x00000000   Number         0  uldiv.o ABSOLUTE
     ../clib/microlib/division.c              0x00000000   Number         0  uidiv.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9a.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8b.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8a.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry7b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11b.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry7a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry7b.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry5.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry2.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10a.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11b.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11a.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10b.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9b.o ABSOLUTE
     ../clib/microlib/longlong.c              0x00000000   Number         0  llsshr.o ABSOLUTE
     ../clib/microlib/longlong.c              0x00000000   Number         0  llushr.o ABSOLUTE
     ../clib/microlib/longlong.c              0x00000000   Number         0  llshl.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf1.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf0.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printfb.o ABSOLUTE
     ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf6.o ABSOLUTE
     ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf5.o ABSOLUTE
     ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf4.o ABSOLUTE
     ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf3.o ABSOLUTE
-    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf2.o ABSOLUTE
-    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf1.o ABSOLUTE
-    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf0.o ABSOLUTE
-    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printfb.o ABSOLUTE
     ../clib/microlib/printf/printf.c         0x00000000   Number         0  printfa.o ABSOLUTE
     ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf8.o ABSOLUTE
     ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf7.o ABSOLUTE
+    ../clib/microlib/printf/printf.c         0x00000000   Number         0  printf2.o ABSOLUTE
     ../clib/microlib/stdio/streams.c         0x00000000   Number         0  stdout.o ABSOLUTE
     ../clib/microlib/stubs.s                 0x00000000   Number         0  iusefp.o ABSOLUTE
     ../fplib/microlib/fpadd.c                0x00000000   Number         0  dadd.o ABSOLUTE
@@ -946,97 +932,88 @@ Image Symbol Table
     .text                                    0x08000124   Section       36  init.o(.text)
     .text                                    0x08000148   Section        0  __dczerorl.o(.text)
     i.Bueezr_Config                          0x08000184   Section        0  timer.o(i.Bueezr_Config)
-    i.Buzzer_Switch                          0x080001a0   Section        0  timer.o(i.Buzzer_Switch)
-    i.CH_LED_switch                          0x080001ec   Section        0  tm1639.o(i.CH_LED_switch)
-    i.Check_UvLed_Sta                        0x080002e4   Section        0  timer.o(i.Check_UvLed_Sta)
-    i.DMA1_Channel1_IRQHandler               0x08000318   Section        0  adc.o(i.DMA1_Channel1_IRQHandler)
-    i.Init_Adc                               0x080004a8   Section        0  adc.o(i.Init_Adc)
-    i.Init_Gpio                              0x08000620   Section        0  gpio.o(i.Init_Gpio)
-    i.Init_TM1639                            0x080006c4   Section        0  tm1639.o(i.Init_TM1639)
-    i.Init_Timer1                            0x08000720   Section        0  timer.o(i.Init_Timer1)
-    i.Init_Timer2                            0x080008bc   Section        0  timer.o(i.Init_Timer2)
-    i.Init_Timer3                            0x0800097c   Section        0  timer.o(i.Init_Timer3)
-    i.Init_uvch                              0x080009f4   Section        0  sys.o(i.Init_uvch)
-    i.Key_Bk_Scan                            0x08000a14   Section        0  application.o(i.Key_Bk_Scan)
-    i.Key_Ch_Scan                            0x08000af0   Section        0  application.o(i.Key_Ch_Scan)
-    i.Key_Down_Scan                          0x08000bbc   Section        0  application.o(i.Key_Down_Scan)
-    i.Key_Fw_Scan                            0x08000cbc   Section        0  application.o(i.Key_Fw_Scan)
-    i.Key_Handle                             0x08000d90   Section        0  application.o(i.Key_Handle)
-    i.Key_Mode_Scan                          0x08000db4   Section        0  application.o(i.Key_Mode_Scan)
-    i.Key_Set_Scan                           0x08000f24   Section        0  application.o(i.Key_Set_Scan)
-    i.Key_Up_Scan                            0x08000ff8   Section        0  application.o(i.Key_Up_Scan)
-    i.Key_Uvon_Scan                          0x080010f4   Section        0  application.o(i.Key_Uvon_Scan)
-    i.PHY_Set_UVLed_Time                     0x0800119c   Section        0  uvled.o(i.PHY_Set_UVLed_Time)
-    i.PHY_UVLed_CheckIn                      0x080011cc   Section        0  uvled.o(i.PHY_UVLed_CheckIn)
-    i.PHY_UVLed_Select                       0x08001328   Section        0  uvled.o(i.PHY_UVLed_Select)
-    i.PHY_UVon_ChLed                         0x080013f4   Section        0  uvled.o(i.PHY_UVon_ChLed)
-    i.ReadByte                               0x0800142c   Section        0  tm1639.o(i.ReadByte)
-    ReadByte                                 0x0800142d   Thumb Code    64  tm1639.o(i.ReadByte)
-    i.SetSysClock                            0x08001470   Section        0  system_cs32f10x.o(i.SetSysClock)
-    SetSysClock                              0x08001471   Thumb Code     8  system_cs32f10x.o(i.SetSysClock)
-    i.SystemInit                             0x08001478   Section        0  system_cs32f10x.o(i.SystemInit)
-    i.TIM3_IRQHandler                        0x080014d8   Section        0  timer.o(i.TIM3_IRQHandler)
-    i.TM1639_Clear                           0x08001574   Section        0  tm1639.o(i.TM1639_Clear)
-    i.TM1639_DelayUs                         0x080015b0   Section        0  tm1639.o(i.TM1639_DelayUs)
-    TM1639_DelayUs                           0x080015b1   Thumb Code    40  tm1639.o(i.TM1639_DelayUs)
-    i.TM1639_DisplayChar_Num                 0x080015d8   Section        0  tm1639.o(i.TM1639_DisplayChar_Num)
-    i.TM1639_DisplayNum                      0x08001630   Section        0  tm1639.o(i.TM1639_DisplayNum)
-    i.TM1639_Display_UVLED_Char              0x080016b0   Section        0  tm1639.o(i.TM1639_Display_UVLED_Char)
-    i.TM1639_LED_switch                      0x0800172c   Section        0  tm1639.o(i.TM1639_LED_switch)
-    i.TM1639_Read_Key                        0x08001794   Section        0  tm1639.o(i.TM1639_Read_Key)
-    i.TM1639_SendByte                        0x0800190c   Section        0  tm1639.o(i.TM1639_SendByte)
-    TM1639_SendByte                          0x0800190d   Thumb Code    78  tm1639.o(i.TM1639_SendByte)
-    i.TM1639_SendCmd                         0x08001960   Section        0  tm1639.o(i.TM1639_SendCmd)
-    TM1639_SendCmd                           0x08001961   Thumb Code    40  tm1639.o(i.TM1639_SendCmd)
-    i.TM1639_SetBrightness                   0x0800198c   Section        0  tm1639.o(i.TM1639_SetBrightness)
-    i.TM1639_WriteByte                       0x080019a0   Section        0  tm1639.o(i.TM1639_WriteByte)
-    i.USART1_IRQHandler                      0x080019dc   Section        0  usart.o(i.USART1_IRQHandler)
-    i.UV_LED_PwmSet                          0x08001a8c   Section        0  timer.o(i.UV_LED_PwmSet)
-    i.UV_LED_Switch                          0x08001b1c   Section        0  timer.o(i.UV_LED_Switch)
-    i._Bueezr_Handle                         0x08001c54   Section        0  timer.o(i._Bueezr_Handle)
-    i._UVLED_CurrCheck_Disable               0x08001cd0   Section        0  adc.o(i._UVLED_CurrCheck_Disable)
-    i._UVLED_CurrCheck_Enable                0x08001d2c   Section        0  adc.o(i._UVLED_CurrCheck_Enable)
-    i.__scatterload_copy                     0x08001d50   Section       14  handlers.o(i.__scatterload_copy)
-    i.__scatterload_null                     0x08001d5e   Section        2  handlers.o(i.__scatterload_null)
-    i.__scatterload_zeroinit                 0x08001d60   Section       14  handlers.o(i.__scatterload_zeroinit)
-    i._check_uvled_err                       0x08001d70   Section        0  uvled.o(i._check_uvled_err)
-    i._timer_uvon_scan                       0x08001d9c   Section        0  timer.o(i._timer_uvon_scan)
-    i.adc1_dma_config                        0x08001e10   Section        0  adc.o(i.adc1_dma_config)
-    adc1_dma_config                          0x08001e11   Thumb Code   122  adc.o(i.adc1_dma_config)
-    i.adc_init                               0x08001e9c   Section        0  cs32f10x_adc.o(i.adc_init)
-    i.adc_regular_channel_config             0x08001edc   Section        0  cs32f10x_adc.o(i.adc_regular_channel_config)
-    i.dma_def_init                           0x08001f84   Section        0  cs32f10x_dma.o(i.dma_def_init)
-    i.dma_init                               0x08001fb8   Section        0  cs32f10x_dma.o(i.dma_init)
-    i.gpio_mode_config                       0x08002014   Section        0  cs32f10x_gpio.o(i.gpio_mode_config)
-    i.gpio_pin_remap_config                  0x080020dc   Section        0  cs32f10x_gpio.o(i.gpio_pin_remap_config)
-    i.main                                   0x080020fc   Section        0  main.o(i.main)
-    i.nvic_init                              0x08002168   Section        0  cs32f10x_misc.o(i.nvic_init)
-    i.rcu_adcclk_config                      0x080021d8   Section        0  cs32f10x_rcu.o(i.rcu_adcclk_config)
-    i.set_sysclk_freq_72M                    0x080021ec   Section        0  system_cs32f10x.o(i.set_sysclk_freq_72M)
-    set_sysclk_freq_72M                      0x080021ed   Thumb Code   214  system_cs32f10x.o(i.set_sysclk_freq_72M)
-    i.tim_base_init                          0x080022cc   Section        0  cs32f10x_tim.o(i.tim_base_init)
-    i.tim_chcc_enable_ctrl                   0x0800230c   Section        0  cs32f10x_tim.o(i.tim_chcc_enable_ctrl)
-    i.tim_choc_init                          0x08002330   Section        0  cs32f10x_tim.o(i.tim_choc_init)
-    i.tim_def_init                           0x080023d8   Section        0  cs32f10x_tim.o(i.tim_def_init)
-    i.tim_prescaler_set                      0x080024e8   Section        0  cs32f10x_tim.o(i.tim_prescaler_set)
-    i.tim_pwm_output_enable_ctrl             0x080024ee   Section        0  timer.o(i.tim_pwm_output_enable_ctrl)
-    i.timer1_channel_gpiomode                0x0800251c   Section        0  timer.o(i.timer1_channel_gpiomode)
-    i.uvled_current_detection                0x08002588   Section        0  adc.o(i.uvled_current_detection)
-    i.uvled_current_error                    0x080025d0   Section        0  adc.o(i.uvled_current_error)
-    .constdata                               0x080026cc   Section       93  tm1639.o(.constdata)
-    TM1639_Font                              0x080026cc   Data          18  tm1639.o(.constdata)
-    UVLED_Font                               0x080026de   Data          75  tm1639.o(.constdata)
-    .data                                    0x20000000   Section       30  sys.o(.data)
-    .data                                    0x2000001e   Section      612  timer.o(.data)
-    .data                                    0x20000282   Section        2  usart.o(.data)
-    .data                                    0x20000284   Section       11  adc.o(.data)
-    .data                                    0x20000290   Section        2  tm1639.o(.data)
-    .data                                    0x20000292   Section       32  application.o(.data)
-    .bss                                     0x200002b4   Section      206  sys.o(.bss)
-    .bss                                     0x20000382   Section       10  usart.o(.bss)
-    .bss                                     0x2000038c   Section       12  adc.o(.bss)
-    adc_conv                                 0x2000038c   Data          12  adc.o(.bss)
-    STACK                                    0x20000398   Section     1024  startup_cs32f103xb.o(STACK)
+    i.Buzzer_Switch                          0x080001a8   Section        0  timer.o(i.Buzzer_Switch)
+    i.CH_LED_switch                          0x080001f4   Section        0  tm1639.o(i.CH_LED_switch)
+    i.DMA1_Channel1_IRQHandler               0x080002ec   Section        0  adc.o(i.DMA1_Channel1_IRQHandler)
+    i.Init_Gpio                              0x0800047c   Section        0  gpio.o(i.Init_Gpio)
+    i.Init_TM1639                            0x08000520   Section        0  tm1639.o(i.Init_TM1639)
+    i.Init_Timer1                            0x0800057c   Section        0  timer.o(i.Init_Timer1)
+    i.Init_Timer2                            0x08000718   Section        0  timer.o(i.Init_Timer2)
+    i.Init_Timer3                            0x080007d8   Section        0  timer.o(i.Init_Timer3)
+    i.Init_uvch                              0x08000850   Section        0  sys.o(i.Init_uvch)
+    i.Key_Bk_Scan                            0x08000870   Section        0  application.o(i.Key_Bk_Scan)
+    i.Key_Ch_Scan                            0x080008f4   Section        0  application.o(i.Key_Ch_Scan)
+    i.Key_Down_Scan                          0x08000978   Section        0  application.o(i.Key_Down_Scan)
+    i.Key_Fw_Scan                            0x080009fc   Section        0  application.o(i.Key_Fw_Scan)
+    i.Key_Handle                             0x08000a80   Section        0  application.o(i.Key_Handle)
+    i.Key_Mode_Scan                          0x08000aa8   Section        0  application.o(i.Key_Mode_Scan)
+    i.Key_Set_Scan                           0x08000b2c   Section        0  application.o(i.Key_Set_Scan)
+    i.Key_Up_Scan                            0x08000bb8   Section        0  application.o(i.Key_Up_Scan)
+    i.Key_Uvon_Scan                          0x08000c3c   Section        0  application.o(i.Key_Uvon_Scan)
+    i.PHY_Light_ModeLED                      0x08000cbc   Section        0  application.o(i.PHY_Light_ModeLED)
+    i.PHY_Mode_Switch                        0x08000d80   Section        0  application.o(i.PHY_Mode_Switch)
+    i.PHY_Set_UVLed_Time                     0x08000dd0   Section        0  uvled.o(i.PHY_Set_UVLed_Time)
+    i.PHY_UVLed_CheckIn                      0x08000e00   Section        0  uvled.o(i.PHY_UVLed_CheckIn)
+    i.PHY_UVLed_Select                       0x08000f5c   Section        0  uvled.o(i.PHY_UVLed_Select)
+    i.PHY_UVon_ChLed                         0x08001050   Section        0  uvled.o(i.PHY_UVon_ChLed)
+    i.PHY_UvLed_Mode_Handle                  0x08001088   Section        0  application.o(i.PHY_UvLed_Mode_Handle)
+    i.ReadByte                               0x080015b4   Section        0  tm1639.o(i.ReadByte)
+    ReadByte                                 0x080015b5   Thumb Code    64  tm1639.o(i.ReadByte)
+    i.SetSysClock                            0x080015f8   Section        0  system_cs32f10x.o(i.SetSysClock)
+    SetSysClock                              0x080015f9   Thumb Code     8  system_cs32f10x.o(i.SetSysClock)
+    i.SystemInit                             0x08001600   Section        0  system_cs32f10x.o(i.SystemInit)
+    i.TIM3_IRQHandler                        0x08001660   Section        0  timer.o(i.TIM3_IRQHandler)
+    i.TM1639_Clear                           0x080016fc   Section        0  tm1639.o(i.TM1639_Clear)
+    i.TM1639_DelayUs                         0x08001738   Section        0  tm1639.o(i.TM1639_DelayUs)
+    TM1639_DelayUs                           0x08001739   Thumb Code    40  tm1639.o(i.TM1639_DelayUs)
+    i.TM1639_DisplayChar_Num                 0x08001760   Section        0  tm1639.o(i.TM1639_DisplayChar_Num)
+    i.TM1639_DisplayNum                      0x080017b8   Section        0  tm1639.o(i.TM1639_DisplayNum)
+    i.TM1639_Display_UVLED_Char              0x08001838   Section        0  tm1639.o(i.TM1639_Display_UVLED_Char)
+    i.TM1639_LED_switch                      0x080018b4   Section        0  tm1639.o(i.TM1639_LED_switch)
+    i.TM1639_Read_Key                        0x0800191c   Section        0  tm1639.o(i.TM1639_Read_Key)
+    i.TM1639_SendByte                        0x08001a94   Section        0  tm1639.o(i.TM1639_SendByte)
+    TM1639_SendByte                          0x08001a95   Thumb Code    78  tm1639.o(i.TM1639_SendByte)
+    i.TM1639_SendCmd                         0x08001ae8   Section        0  tm1639.o(i.TM1639_SendCmd)
+    TM1639_SendCmd                           0x08001ae9   Thumb Code    40  tm1639.o(i.TM1639_SendCmd)
+    i.TM1639_SetBrightness                   0x08001b14   Section        0  tm1639.o(i.TM1639_SetBrightness)
+    i.TM1639_WriteByte                       0x08001b28   Section        0  tm1639.o(i.TM1639_WriteByte)
+    i.USART1_IRQHandler                      0x08001b64   Section        0  usart.o(i.USART1_IRQHandler)
+    i.UV_LED_PwmSet                          0x08001c14   Section        0  timer.o(i.UV_LED_PwmSet)
+    i._Bueezr_Handle                         0x08001ca4   Section        0  timer.o(i._Bueezr_Handle)
+    i.__scatterload_copy                     0x08001d20   Section       14  handlers.o(i.__scatterload_copy)
+    i.__scatterload_null                     0x08001d2e   Section        2  handlers.o(i.__scatterload_null)
+    i.__scatterload_zeroinit                 0x08001d30   Section       14  handlers.o(i.__scatterload_zeroinit)
+    i._clear_KeyStaFlag                      0x08001d40   Section        0  application.o(i._clear_KeyStaFlag)
+    i._timer_uvon_scan                       0x08001d6c   Section        0  timer.o(i._timer_uvon_scan)
+    i.gpio_mode_config                       0x08001de0   Section        0  cs32f10x_gpio.o(i.gpio_mode_config)
+    i.gpio_pin_remap_config                  0x08001ea8   Section        0  cs32f10x_gpio.o(i.gpio_pin_remap_config)
+    i.main                                   0x08001ec8   Section        0  main.o(i.main)
+    i.menuset_handle                         0x08001f3c   Section        0  application.o(i.menuset_handle)
+    i.nvic_init                              0x08002060   Section        0  cs32f10x_misc.o(i.nvic_init)
+    i.set_sysclk_freq_72M                    0x080020d0   Section        0  system_cs32f10x.o(i.set_sysclk_freq_72M)
+    set_sysclk_freq_72M                      0x080020d1   Thumb Code   214  system_cs32f10x.o(i.set_sysclk_freq_72M)
+    i.tim_base_init                          0x080021b0   Section        0  cs32f10x_tim.o(i.tim_base_init)
+    i.tim_chcc_enable_ctrl                   0x080021f0   Section        0  cs32f10x_tim.o(i.tim_chcc_enable_ctrl)
+    i.tim_choc_init                          0x08002214   Section        0  cs32f10x_tim.o(i.tim_choc_init)
+    i.tim_def_init                           0x080022bc   Section        0  cs32f10x_tim.o(i.tim_def_init)
+    i.tim_prescaler_set                      0x080023cc   Section        0  cs32f10x_tim.o(i.tim_prescaler_set)
+    i.timer1_channel_gpiomode                0x080023d4   Section        0  timer.o(i.timer1_channel_gpiomode)
+    i.uvled_current_detection                0x08002440   Section        0  adc.o(i.uvled_current_detection)
+    i.uvled_current_error                    0x08002488   Section        0  adc.o(i.uvled_current_error)
+    .constdata                               0x08002584   Section       93  tm1639.o(.constdata)
+    TM1639_Font                              0x08002584   Data          18  tm1639.o(.constdata)
+    UVLED_Font                               0x08002596   Data          75  tm1639.o(.constdata)
+    .data                                    0x20000000   Section       31  sys.o(.data)
+    .data                                    0x20000020   Section      612  timer.o(.data)
+    .data                                    0x20000284   Section        2  usart.o(.data)
+    .data                                    0x20000286   Section       11  adc.o(.data)
+    .data                                    0x20000292   Section        2  tm1639.o(.data)
+    .data                                    0x20000294   Section       35  application.o(.data)
+    .bss                                     0x200002b8   Section      206  sys.o(.bss)
+    .bss                                     0x20000386   Section       10  usart.o(.bss)
+    .bss                                     0x20000390   Section       12  adc.o(.bss)
+    adc_conv                                 0x20000390   Data          12  adc.o(.bss)
+    STACK                                    0x200003a0   Section     1024  startup_cs32f103xb.o(STACK)
 
     Global Symbols
 
@@ -1114,72 +1091,65 @@ Image Symbol Table
     __scatterload_rt2                        0x08000125   Thumb Code     0  init.o(.text)
     __decompress                             0x08000149   Thumb Code     0  __dczerorl.o(.text)
     __decompress0                            0x08000149   Thumb Code    58  __dczerorl.o(.text)
-    Bueezr_Config                            0x08000185   Thumb Code    14  timer.o(i.Bueezr_Config)
-    Buzzer_Switch                            0x080001a1   Thumb Code    72  timer.o(i.Buzzer_Switch)
-    CH_LED_switch                            0x080001ed   Thumb Code   246  tm1639.o(i.CH_LED_switch)
-    Check_UvLed_Sta                          0x080002e5   Thumb Code    46  timer.o(i.Check_UvLed_Sta)
-    DMA1_Channel1_IRQHandler                 0x08000319   Thumb Code   370  adc.o(i.DMA1_Channel1_IRQHandler)
-    Init_Adc                                 0x080004a9   Thumb Code   350  adc.o(i.Init_Adc)
-    Init_Gpio                                0x08000621   Thumb Code   142  gpio.o(i.Init_Gpio)
-    Init_TM1639                              0x080006c5   Thumb Code    82  tm1639.o(i.Init_TM1639)
-    Init_Timer1                              0x08000721   Thumb Code   392  timer.o(i.Init_Timer1)
-    Init_Timer2                              0x080008bd   Thumb Code   184  timer.o(i.Init_Timer2)
-    Init_Timer3                              0x0800097d   Thumb Code   112  timer.o(i.Init_Timer3)
-    Init_uvch                                0x080009f5   Thumb Code    26  sys.o(i.Init_uvch)
-    Key_Bk_Scan                              0x08000a15   Thumb Code   194  application.o(i.Key_Bk_Scan)
-    Key_Ch_Scan                              0x08000af1   Thumb Code   178  application.o(i.Key_Ch_Scan)
-    Key_Down_Scan                            0x08000bbd   Thumb Code   228  application.o(i.Key_Down_Scan)
-    Key_Fw_Scan                              0x08000cbd   Thumb Code   188  application.o(i.Key_Fw_Scan)
-    Key_Handle                               0x08000d91   Thumb Code    36  application.o(i.Key_Handle)
-    Key_Mode_Scan                            0x08000db5   Thumb Code   338  application.o(i.Key_Mode_Scan)
-    Key_Set_Scan                             0x08000f25   Thumb Code   182  application.o(i.Key_Set_Scan)
-    Key_Up_Scan                              0x08000ff9   Thumb Code   222  application.o(i.Key_Up_Scan)
-    Key_Uvon_Scan                            0x080010f5   Thumb Code   144  application.o(i.Key_Uvon_Scan)
-    PHY_Set_UVLed_Time                       0x0800119d   Thumb Code    42  uvled.o(i.PHY_Set_UVLed_Time)
-    PHY_UVLed_CheckIn                        0x080011cd   Thumb Code   324  uvled.o(i.PHY_UVLed_CheckIn)
-    PHY_UVLed_Select                         0x08001329   Thumb Code   200  uvled.o(i.PHY_UVLed_Select)
-    PHY_UVon_ChLed                           0x080013f5   Thumb Code    50  uvled.o(i.PHY_UVon_ChLed)
-    SystemInit                               0x08001479   Thumb Code    78  system_cs32f10x.o(i.SystemInit)
-    TIM3_IRQHandler                          0x080014d9   Thumb Code   128  timer.o(i.TIM3_IRQHandler)
-    TM1639_Clear                             0x08001575   Thumb Code    56  tm1639.o(i.TM1639_Clear)
-    TM1639_DisplayChar_Num                   0x080015d9   Thumb Code    84  tm1639.o(i.TM1639_DisplayChar_Num)
-    TM1639_DisplayNum                        0x08001631   Thumb Code   122  tm1639.o(i.TM1639_DisplayNum)
-    TM1639_Display_UVLED_Char                0x080016b1   Thumb Code   116  tm1639.o(i.TM1639_Display_UVLED_Char)
-    TM1639_LED_switch                        0x0800172d   Thumb Code    98  tm1639.o(i.TM1639_LED_switch)
-    TM1639_Read_Key                          0x08001795   Thumb Code   368  tm1639.o(i.TM1639_Read_Key)
-    TM1639_SetBrightness                     0x0800198d   Thumb Code    20  tm1639.o(i.TM1639_SetBrightness)
-    TM1639_WriteByte                         0x080019a1   Thumb Code    54  tm1639.o(i.TM1639_WriteByte)
-    USART1_IRQHandler                        0x080019dd   Thumb Code   154  usart.o(i.USART1_IRQHandler)
-    UV_LED_PwmSet                            0x08001a8d   Thumb Code   132  timer.o(i.UV_LED_PwmSet)
-    UV_LED_Switch                            0x08001b1d   Thumb Code   294  timer.o(i.UV_LED_Switch)
-    _Bueezr_Handle                           0x08001c55   Thumb Code   110  timer.o(i._Bueezr_Handle)
-    _UVLED_CurrCheck_Disable                 0x08001cd1   Thumb Code    74  adc.o(i._UVLED_CurrCheck_Disable)
-    _UVLED_CurrCheck_Enable                  0x08001d2d   Thumb Code    28  adc.o(i._UVLED_CurrCheck_Enable)
-    __scatterload_copy                       0x08001d51   Thumb Code    14  handlers.o(i.__scatterload_copy)
-    __scatterload_null                       0x08001d5f   Thumb Code     2  handlers.o(i.__scatterload_null)
-    __scatterload_zeroinit                   0x08001d61   Thumb Code    14  handlers.o(i.__scatterload_zeroinit)
-    _check_uvled_err                         0x08001d71   Thumb Code    38  uvled.o(i._check_uvled_err)
-    _timer_uvon_scan                         0x08001d9d   Thumb Code   106  timer.o(i._timer_uvon_scan)
-    adc_init                                 0x08001e9d   Thumb Code    56  cs32f10x_adc.o(i.adc_init)
-    adc_regular_channel_config               0x08001edd   Thumb Code   166  cs32f10x_adc.o(i.adc_regular_channel_config)
-    dma_def_init                             0x08001f85   Thumb Code    48  cs32f10x_dma.o(i.dma_def_init)
-    dma_init                                 0x08001fb9   Thumb Code    82  cs32f10x_dma.o(i.dma_init)
-    gpio_mode_config                         0x08002015   Thumb Code   200  cs32f10x_gpio.o(i.gpio_mode_config)
-    gpio_pin_remap_config                    0x080020dd   Thumb Code    26  cs32f10x_gpio.o(i.gpio_pin_remap_config)
-    main                                     0x080020fd   Thumb Code    94  main.o(i.main)
-    nvic_init                                0x08002169   Thumb Code   100  cs32f10x_misc.o(i.nvic_init)
-    rcu_adcclk_config                        0x080021d9   Thumb Code    16  cs32f10x_rcu.o(i.rcu_adcclk_config)
-    tim_base_init                            0x080022cd   Thumb Code    54  cs32f10x_tim.o(i.tim_base_init)
-    tim_chcc_enable_ctrl                     0x0800230d   Thumb Code    34  cs32f10x_tim.o(i.tim_chcc_enable_ctrl)
-    tim_choc_init                            0x08002331   Thumb Code   158  cs32f10x_tim.o(i.tim_choc_init)
-    tim_def_init                             0x080023d9   Thumb Code   240  cs32f10x_tim.o(i.tim_def_init)
-    tim_prescaler_set                        0x080024e9   Thumb Code     6  cs32f10x_tim.o(i.tim_prescaler_set)
-    tim_pwm_output_enable_ctrl               0x080024ef   Thumb Code    44  timer.o(i.tim_pwm_output_enable_ctrl)
-    timer1_channel_gpiomode                  0x0800251d   Thumb Code    94  timer.o(i.timer1_channel_gpiomode)
-    uvled_current_detection                  0x08002589   Thumb Code    58  adc.o(i.uvled_current_detection)
-    uvled_current_error                      0x080025d1   Thumb Code   238  adc.o(i.uvled_current_error)
-    Region$$Table$$Base                      0x0800272c   Number         0  anon$$obj.o(Region$$Table)
-    Region$$Table$$Limit                     0x0800274c   Number         0  anon$$obj.o(Region$$Table)
+    Bueezr_Config                            0x08000185   Thumb Code    20  timer.o(i.Bueezr_Config)
+    Buzzer_Switch                            0x080001a9   Thumb Code    72  timer.o(i.Buzzer_Switch)
+    CH_LED_switch                            0x080001f5   Thumb Code   246  tm1639.o(i.CH_LED_switch)
+    DMA1_Channel1_IRQHandler                 0x080002ed   Thumb Code   370  adc.o(i.DMA1_Channel1_IRQHandler)
+    Init_Gpio                                0x0800047d   Thumb Code   142  gpio.o(i.Init_Gpio)
+    Init_TM1639                              0x08000521   Thumb Code    82  tm1639.o(i.Init_TM1639)
+    Init_Timer1                              0x0800057d   Thumb Code   392  timer.o(i.Init_Timer1)
+    Init_Timer2                              0x08000719   Thumb Code   184  timer.o(i.Init_Timer2)
+    Init_Timer3                              0x080007d9   Thumb Code   112  timer.o(i.Init_Timer3)
+    Init_uvch                                0x08000851   Thumb Code    26  sys.o(i.Init_uvch)
+    Key_Bk_Scan                              0x08000871   Thumb Code   114  application.o(i.Key_Bk_Scan)
+    Key_Ch_Scan                              0x080008f5   Thumb Code   114  application.o(i.Key_Ch_Scan)
+    Key_Down_Scan                            0x08000979   Thumb Code   114  application.o(i.Key_Down_Scan)
+    Key_Fw_Scan                              0x080009fd   Thumb Code   114  application.o(i.Key_Fw_Scan)
+    Key_Handle                               0x08000a81   Thumb Code    40  application.o(i.Key_Handle)
+    Key_Mode_Scan                            0x08000aa9   Thumb Code   114  application.o(i.Key_Mode_Scan)
+    Key_Set_Scan                             0x08000b2d   Thumb Code   120  application.o(i.Key_Set_Scan)
+    Key_Up_Scan                              0x08000bb9   Thumb Code   114  application.o(i.Key_Up_Scan)
+    Key_Uvon_Scan                            0x08000c3d   Thumb Code   112  application.o(i.Key_Uvon_Scan)
+    PHY_Light_ModeLED                        0x08000cbd   Thumb Code   194  application.o(i.PHY_Light_ModeLED)
+    PHY_Mode_Switch                          0x08000d81   Thumb Code    74  application.o(i.PHY_Mode_Switch)
+    PHY_Set_UVLed_Time                       0x08000dd1   Thumb Code    42  uvled.o(i.PHY_Set_UVLed_Time)
+    PHY_UVLed_CheckIn                        0x08000e01   Thumb Code   324  uvled.o(i.PHY_UVLed_CheckIn)
+    PHY_UVLed_Select                         0x08000f5d   Thumb Code   238  uvled.o(i.PHY_UVLed_Select)
+    PHY_UVon_ChLed                           0x08001051   Thumb Code    50  uvled.o(i.PHY_UVon_ChLed)
+    PHY_UvLed_Mode_Handle                    0x08001089   Thumb Code  1300  application.o(i.PHY_UvLed_Mode_Handle)
+    SystemInit                               0x08001601   Thumb Code    78  system_cs32f10x.o(i.SystemInit)
+    TIM3_IRQHandler                          0x08001661   Thumb Code   128  timer.o(i.TIM3_IRQHandler)
+    TM1639_Clear                             0x080016fd   Thumb Code    56  tm1639.o(i.TM1639_Clear)
+    TM1639_DisplayChar_Num                   0x08001761   Thumb Code    84  tm1639.o(i.TM1639_DisplayChar_Num)
+    TM1639_DisplayNum                        0x080017b9   Thumb Code   122  tm1639.o(i.TM1639_DisplayNum)
+    TM1639_Display_UVLED_Char                0x08001839   Thumb Code   116  tm1639.o(i.TM1639_Display_UVLED_Char)
+    TM1639_LED_switch                        0x080018b5   Thumb Code    98  tm1639.o(i.TM1639_LED_switch)
+    TM1639_Read_Key                          0x0800191d   Thumb Code   368  tm1639.o(i.TM1639_Read_Key)
+    TM1639_SetBrightness                     0x08001b15   Thumb Code    20  tm1639.o(i.TM1639_SetBrightness)
+    TM1639_WriteByte                         0x08001b29   Thumb Code    54  tm1639.o(i.TM1639_WriteByte)
+    USART1_IRQHandler                        0x08001b65   Thumb Code   154  usart.o(i.USART1_IRQHandler)
+    UV_LED_PwmSet                            0x08001c15   Thumb Code   132  timer.o(i.UV_LED_PwmSet)
+    _Bueezr_Handle                           0x08001ca5   Thumb Code   110  timer.o(i._Bueezr_Handle)
+    __scatterload_copy                       0x08001d21   Thumb Code    14  handlers.o(i.__scatterload_copy)
+    __scatterload_null                       0x08001d2f   Thumb Code     2  handlers.o(i.__scatterload_null)
+    __scatterload_zeroinit                   0x08001d31   Thumb Code    14  handlers.o(i.__scatterload_zeroinit)
+    _clear_KeyStaFlag                        0x08001d41   Thumb Code    24  application.o(i._clear_KeyStaFlag)
+    _timer_uvon_scan                         0x08001d6d   Thumb Code   106  timer.o(i._timer_uvon_scan)
+    gpio_mode_config                         0x08001de1   Thumb Code   200  cs32f10x_gpio.o(i.gpio_mode_config)
+    gpio_pin_remap_config                    0x08001ea9   Thumb Code    26  cs32f10x_gpio.o(i.gpio_pin_remap_config)
+    main                                     0x08001ec9   Thumb Code   100  main.o(i.main)
+    menuset_handle                           0x08001f3d   Thumb Code   286  application.o(i.menuset_handle)
+    nvic_init                                0x08002061   Thumb Code   100  cs32f10x_misc.o(i.nvic_init)
+    tim_base_init                            0x080021b1   Thumb Code    54  cs32f10x_tim.o(i.tim_base_init)
+    tim_chcc_enable_ctrl                     0x080021f1   Thumb Code    34  cs32f10x_tim.o(i.tim_chcc_enable_ctrl)
+    tim_choc_init                            0x08002215   Thumb Code   158  cs32f10x_tim.o(i.tim_choc_init)
+    tim_def_init                             0x080022bd   Thumb Code   240  cs32f10x_tim.o(i.tim_def_init)
+    tim_prescaler_set                        0x080023cd   Thumb Code     6  cs32f10x_tim.o(i.tim_prescaler_set)
+    timer1_channel_gpiomode                  0x080023d5   Thumb Code    94  timer.o(i.timer1_channel_gpiomode)
+    uvled_current_detection                  0x08002441   Thumb Code    58  adc.o(i.uvled_current_detection)
+    uvled_current_error                      0x08002489   Thumb Code   238  adc.o(i.uvled_current_error)
+    Region$$Table$$Base                      0x080025e4   Number         0  anon$$obj.o(Region$$Table)
+    Region$$Table$$Limit                     0x08002604   Number         0  anon$$obj.o(Region$$Table)
     time_ms                                  0x20000000   Data           2  sys.o(.data)
     time_10ms                                0x20000002   Data           2  sys.o(.data)
     time_keyscan                             0x20000004   Data           2  sys.o(.data)
@@ -1196,49 +1166,53 @@ Image Symbol Table
     UVCh_Check                               0x20000016   Data           1  sys.o(.data)
     Set_Mode                                 0x20000017   Data           6  sys.o(.data)
     time_adc_wait                            0x2000001d   Data           1  sys.o(.data)
-    timer_ch_buff                            0x2000001e   Data           8  timer.o(.data)
-    pwm_buf                                  0x20000026   Data         200  timer.o(.data)
-    level_buff                               0x200000ee   Data         200  timer.o(.data)
-    pwm75k_buf                               0x200001b6   Data         200  timer.o(.data)
-    ix                                       0x2000027e   Data           2  timer.o(.data)
-    arr_period                               0x20000280   Data           2  timer.o(.data)
-    rx_index                                 0x20000282   Data           1  usart.o(.data)
-    rxdata                                   0x20000283   Data           1  usart.o(.data)
-    adc_ch1                                  0x20000284   Data           2  adc.o(.data)
-    Low_Valtage                              0x20000286   Data           2  adc.o(.data)
-    uvled_adc_ch                             0x20000288   Data           4  adc.o(.data)
-    ich                                      0x2000028c   Data           1  adc.o(.data)
-    vy                                       0x2000028d   Data           1  adc.o(.data)
-    vx                                       0x2000028e   Data           1  adc.o(.data)
-    Led_Sta                                  0x20000290   Data           2  tm1639.o(.data)
-    upcnt                                    0x20000292   Data           1  application.o(.data)
-    downcnt                                  0x20000293   Data           1  application.o(.data)
-    setcnt                                   0x20000294   Data           1  application.o(.data)
-    uvoncnt                                  0x20000295   Data           1  application.o(.data)
-    pwmcnt                                   0x20000296   Data           1  application.o(.data)
-    chcnt                                    0x20000297   Data           1  application.o(.data)
-    chnum                                    0x20000298   Data           1  application.o(.data)
-    uvon                                     0x20000299   Data           1  application.o(.data)
-    levelcnt                                 0x2000029a   Data           1  application.o(.data)
-    menucnt                                  0x2000029b   Data           1  application.o(.data)
-    modecnt                                  0x2000029c   Data           1  application.o(.data)
-    timecnt                                  0x2000029d   Data           1  application.o(.data)
-    hourcnt                                  0x2000029e   Data           1  application.o(.data)
-    bkcnt                                    0x2000029f   Data           1  application.o(.data)
-    fwcnt                                    0x200002a0   Data           1  application.o(.data)
-    moden                                    0x200002a1   Data           1  application.o(.data)
-    rs_mode                                  0x200002a2   Data           1  application.o(.data)
-    _scnt                                    0x200002a3   Data           1  application.o(.data)
-    m_mode_cnt                               0x200002a4   Data           1  application.o(.data)
-    _bf_cnt                                  0x200002a5   Data           1  application.o(.data)
-    _sec_menu_cnt                            0x200002a6   Data           1  application.o(.data)
-    fbuff                                    0x200002a7   Data          11  application.o(.data)
-    UV_Time                                  0x200002b4   Data          24  sys.o(.bss)
-    PHY_CH                                   0x200002cc   Data          96  sys.o(.bss)
-    Adc_Value_Buff                           0x2000032c   Data          70  sys.o(.bss)
-    Timer_Uvon                               0x20000372   Data          16  sys.o(.bss)
-    rx_buf                                   0x20000382   Data          10  usart.o(.bss)
-    __initial_sp                             0x20000798   Data           0  startup_cs32f103xb.o(STACK)
+    time_keysta_del                          0x2000001e   Data           1  sys.o(.data)
+    timer_ch_buff                            0x20000020   Data           8  timer.o(.data)
+    pwm_buf                                  0x20000028   Data         200  timer.o(.data)
+    level_buff                               0x200000f0   Data         200  timer.o(.data)
+    pwm75k_buf                               0x200001b8   Data         200  timer.o(.data)
+    ix                                       0x20000280   Data           2  timer.o(.data)
+    arr_period                               0x20000282   Data           2  timer.o(.data)
+    rx_index                                 0x20000284   Data           1  usart.o(.data)
+    rxdata                                   0x20000285   Data           1  usart.o(.data)
+    adc_ch1                                  0x20000286   Data           2  adc.o(.data)
+    Low_Valtage                              0x20000288   Data           2  adc.o(.data)
+    uvled_adc_ch                             0x2000028a   Data           4  adc.o(.data)
+    ich                                      0x2000028e   Data           1  adc.o(.data)
+    vy                                       0x2000028f   Data           1  adc.o(.data)
+    vx                                       0x20000290   Data           1  adc.o(.data)
+    Led_Sta                                  0x20000292   Data           2  tm1639.o(.data)
+    upcnt                                    0x20000294   Data           1  application.o(.data)
+    downcnt                                  0x20000295   Data           1  application.o(.data)
+    setcnt                                   0x20000296   Data           1  application.o(.data)
+    uvoncnt                                  0x20000297   Data           1  application.o(.data)
+    pwmcnt                                   0x20000298   Data           1  application.o(.data)
+    chcnt                                    0x20000299   Data           1  application.o(.data)
+    chnum                                    0x2000029a   Data           1  application.o(.data)
+    uvon                                     0x2000029b   Data           1  application.o(.data)
+    levelcnt                                 0x2000029c   Data           1  application.o(.data)
+    menucnt                                  0x2000029d   Data           1  application.o(.data)
+    modecnt                                  0x2000029e   Data           1  application.o(.data)
+    timecnt                                  0x2000029f   Data           1  application.o(.data)
+    hourcnt                                  0x200002a0   Data           1  application.o(.data)
+    bkcnt                                    0x200002a1   Data           1  application.o(.data)
+    fwcnt                                    0x200002a2   Data           1  application.o(.data)
+    moden                                    0x200002a3   Data           1  application.o(.data)
+    rs_mode                                  0x200002a4   Data           1  application.o(.data)
+    _scnt                                    0x200002a5   Data           1  application.o(.data)
+    m_mode_cnt                               0x200002a6   Data           1  application.o(.data)
+    _bf_cnt                                  0x200002a7   Data           1  application.o(.data)
+    _sec_menu_cnt                            0x200002a8   Data           1  application.o(.data)
+    _mcnt                                    0x200002a9   Data           1  application.o(.data)
+    _menuset_cnt                             0x200002aa   Data           1  application.o(.data)
+    run_ch                                   0x200002ab   Data           1  application.o(.data)
+    fbuff                                    0x200002ac   Data          11  application.o(.data)
+    UV_Time                                  0x200002b8   Data          24  sys.o(.bss)
+    PHY_CH                                   0x200002d0   Data          96  sys.o(.bss)
+    Adc_Value_Buff                           0x20000330   Data          70  sys.o(.bss)
+    Timer_Uvon                               0x20000376   Data          16  sys.o(.bss)
+    rx_buf                                   0x20000386   Data          10  usart.o(.bss)
+    __initial_sp                             0x200007a0   Data           0  startup_cs32f103xb.o(STACK)
 
 
 
@@ -1248,123 +1222,117 @@ Memory Map of the image
 
   Image Entry point : 0x080000ed
 
-  Load Region LR_IROM1 (Base: 0x08000000, Size: 0x00002a00, Max: 0x00020000, ABSOLUTE, COMPRESSED[0x00002908])
+  Load Region LR_IROM1 (Base: 0x08000000, Size: 0x000028bc, Max: 0x00020000, ABSOLUTE, COMPRESSED[0x000027c0])
 
-    Execution Region ER_IROM1 (Exec base: 0x08000000, Load base: 0x08000000, Size: 0x0000274c, Max: 0x00020000, ABSOLUTE)
+    Execution Region ER_IROM1 (Exec base: 0x08000000, Load base: 0x08000000, Size: 0x00002604, Max: 0x00020000, ABSOLUTE)
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x08000000   0x08000000   0x000000ec   Data   RO         2243    RESET               startup_cs32f103xb.o
-    0x080000ec   0x080000ec   0x00000000   Code   RO         2294  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
-    0x080000ec   0x080000ec   0x00000004   Code   RO         2557    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
-    0x080000f0   0x080000f0   0x00000004   Code   RO         2560    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
-    0x080000f4   0x080000f4   0x00000000   Code   RO         2562    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
-    0x080000f4   0x080000f4   0x00000000   Code   RO         2564    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
-    0x080000f4   0x080000f4   0x00000008   Code   RO         2565    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
-    0x080000fc   0x080000fc   0x00000000   Code   RO         2567    .ARM.Collect$$$$0000000D  mc_w.l(entry10a.o)
-    0x080000fc   0x080000fc   0x00000000   Code   RO         2569    .ARM.Collect$$$$0000000F  mc_w.l(entry11a.o)
-    0x080000fc   0x080000fc   0x00000004   Code   RO         2558    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
-    0x08000100   0x08000100   0x00000024   Code   RO         2244    .text               startup_cs32f103xb.o
-    0x08000124   0x08000124   0x00000024   Code   RO         2587    .text               mc_w.l(init.o)
-    0x08000148   0x08000148   0x0000003a   Code   RO         2605    .text               mc_w.l(__dczerorl.o)
+    0x08000000   0x08000000   0x000000ec   Data   RO         2255    RESET               startup_cs32f103xb.o
+    0x080000ec   0x080000ec   0x00000000   Code   RO         2306  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
+    0x080000ec   0x080000ec   0x00000004   Code   RO         2569    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
+    0x080000f0   0x080000f0   0x00000004   Code   RO         2572    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
+    0x080000f4   0x080000f4   0x00000000   Code   RO         2574    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
+    0x080000f4   0x080000f4   0x00000000   Code   RO         2576    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
+    0x080000f4   0x080000f4   0x00000008   Code   RO         2577    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
+    0x080000fc   0x080000fc   0x00000000   Code   RO         2579    .ARM.Collect$$$$0000000D  mc_w.l(entry10a.o)
+    0x080000fc   0x080000fc   0x00000000   Code   RO         2581    .ARM.Collect$$$$0000000F  mc_w.l(entry11a.o)
+    0x080000fc   0x080000fc   0x00000004   Code   RO         2570    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
+    0x08000100   0x08000100   0x00000024   Code   RO         2256    .text               startup_cs32f103xb.o
+    0x08000124   0x08000124   0x00000024   Code   RO         2599    .text               mc_w.l(init.o)
+    0x08000148   0x08000148   0x0000003a   Code   RO         2617    .text               mc_w.l(__dczerorl.o)
     0x08000182   0x08000182   0x00000002   PAD
-    0x08000184   0x08000184   0x0000001c   Code   RO          184    i.Bueezr_Config     timer.o
-    0x080001a0   0x080001a0   0x0000004c   Code   RO          185    i.Buzzer_Switch     timer.o
-    0x080001ec   0x080001ec   0x000000f6   Code   RO          458    i.CH_LED_switch     tm1639.o
-    0x080002e2   0x080002e2   0x00000002   PAD
-    0x080002e4   0x080002e4   0x00000034   Code   RO          186    i.Check_UvLed_Sta   timer.o
-    0x08000318   0x08000318   0x00000190   Code   RO          340    i.DMA1_Channel1_IRQHandler  adc.o
-    0x080004a8   0x080004a8   0x00000178   Code   RO          341    i.Init_Adc          adc.o
-    0x08000620   0x08000620   0x000000a4   Code   RO          160    i.Init_Gpio         gpio.o
-    0x080006c4   0x080006c4   0x0000005c   Code   RO          461    i.Init_TM1639       tm1639.o
-    0x08000720   0x08000720   0x0000019c   Code   RO          187    i.Init_Timer1       timer.o
-    0x080008bc   0x080008bc   0x000000c0   Code   RO          188    i.Init_Timer2       timer.o
-    0x0800097c   0x0800097c   0x00000078   Code   RO          189    i.Init_Timer3       timer.o
-    0x080009f4   0x080009f4   0x00000020   Code   RO          119    i.Init_uvch         sys.o
-    0x08000a14   0x08000a14   0x000000dc   Code   RO          652    i.Key_Bk_Scan       application.o
-    0x08000af0   0x08000af0   0x000000cc   Code   RO          653    i.Key_Ch_Scan       application.o
-    0x08000bbc   0x08000bbc   0x00000100   Code   RO          654    i.Key_Down_Scan     application.o
-    0x08000cbc   0x08000cbc   0x000000d4   Code   RO          655    i.Key_Fw_Scan       application.o
-    0x08000d90   0x08000d90   0x00000024   Code   RO          656    i.Key_Handle        application.o
-    0x08000db4   0x08000db4   0x00000170   Code   RO          657    i.Key_Mode_Scan     application.o
-    0x08000f24   0x08000f24   0x000000d4   Code   RO          658    i.Key_Set_Scan      application.o
-    0x08000ff8   0x08000ff8   0x000000fc   Code   RO          659    i.Key_Up_Scan       application.o
-    0x080010f4   0x080010f4   0x000000a8   Code   RO          660    i.Key_Uvon_Scan     application.o
-    0x0800119c   0x0800119c   0x00000030   Code   RO          594    i.PHY_Set_UVLed_Time  uvled.o
-    0x080011cc   0x080011cc   0x0000015c   Code   RO          595    i.PHY_UVLed_CheckIn  uvled.o
-    0x08001328   0x08001328   0x000000cc   Code   RO          596    i.PHY_UVLed_Select  uvled.o
-    0x080013f4   0x080013f4   0x00000038   Code   RO          597    i.PHY_UVon_ChLed    uvled.o
-    0x0800142c   0x0800142c   0x00000044   Code   RO          462    i.ReadByte          tm1639.o
-    0x08001470   0x08001470   0x00000008   Code   RO         2251    i.SetSysClock       system_cs32f10x.o
-    0x08001478   0x08001478   0x00000060   Code   RO         2253    i.SystemInit        system_cs32f10x.o
-    0x080014d8   0x080014d8   0x0000009c   Code   RO          190    i.TIM3_IRQHandler   timer.o
-    0x08001574   0x08001574   0x0000003c   Code   RO          463    i.TM1639_Clear      tm1639.o
-    0x080015b0   0x080015b0   0x00000028   Code   RO          464    i.TM1639_DelayUs    tm1639.o
-    0x080015d8   0x080015d8   0x00000058   Code   RO          466    i.TM1639_DisplayChar_Num  tm1639.o
-    0x08001630   0x08001630   0x00000080   Code   RO          467    i.TM1639_DisplayNum  tm1639.o
-    0x080016b0   0x080016b0   0x0000007c   Code   RO          469    i.TM1639_Display_UVLED_Char  tm1639.o
-    0x0800172c   0x0800172c   0x00000068   Code   RO          470    i.TM1639_LED_switch  tm1639.o
-    0x08001794   0x08001794   0x00000178   Code   RO          471    i.TM1639_Read_Key   tm1639.o
-    0x0800190c   0x0800190c   0x00000054   Code   RO          472    i.TM1639_SendByte   tm1639.o
-    0x08001960   0x08001960   0x0000002c   Code   RO          473    i.TM1639_SendCmd    tm1639.o
-    0x0800198c   0x0800198c   0x00000014   Code   RO          474    i.TM1639_SetBrightness  tm1639.o
-    0x080019a0   0x080019a0   0x0000003c   Code   RO          475    i.TM1639_WriteByte  tm1639.o
-    0x080019dc   0x080019dc   0x000000b0   Code   RO          297    i.USART1_IRQHandler  usart.o
-    0x08001a8c   0x08001a8c   0x00000090   Code   RO          191    i.UV_LED_PwmSet     timer.o
-    0x08001b1c   0x08001b1c   0x00000138   Code   RO          192    i.UV_LED_Switch     timer.o
-    0x08001c54   0x08001c54   0x0000007c   Code   RO          193    i._Bueezr_Handle    timer.o
-    0x08001cd0   0x08001cd0   0x0000005c   Code   RO          342    i._UVLED_CurrCheck_Disable  adc.o
-    0x08001d2c   0x08001d2c   0x00000024   Code   RO          343    i._UVLED_CurrCheck_Enable  adc.o
-    0x08001d50   0x08001d50   0x0000000e   Code   RO         2599    i.__scatterload_copy  mc_w.l(handlers.o)
-    0x08001d5e   0x08001d5e   0x00000002   Code   RO         2600    i.__scatterload_null  mc_w.l(handlers.o)
-    0x08001d60   0x08001d60   0x0000000e   Code   RO         2601    i.__scatterload_zeroinit  mc_w.l(handlers.o)
-    0x08001d6e   0x08001d6e   0x00000002   PAD
-    0x08001d70   0x08001d70   0x0000002c   Code   RO          599    i._check_uvled_err  uvled.o
-    0x08001d9c   0x08001d9c   0x00000074   Code   RO          194    i._timer_uvon_scan  timer.o
-    0x08001e10   0x08001e10   0x0000008c   Code   RO          344    i.adc1_dma_config   adc.o
-    0x08001e9c   0x08001e9c   0x00000040   Code   RO          753    i.adc_init          cs32f10x_adc.o
-    0x08001edc   0x08001edc   0x000000a6   Code   RO          759    i.adc_regular_channel_config  cs32f10x_adc.o
-    0x08001f82   0x08001f82   0x00000002   PAD
-    0x08001f84   0x08001f84   0x00000034   Code   RO         1097    i.dma_def_init      cs32f10x_dma.o
-    0x08001fb8   0x08001fb8   0x0000005c   Code   RO         1098    i.dma_init          cs32f10x_dma.o
-    0x08002014   0x08002014   0x000000c8   Code   RO         1338    i.gpio_mode_config  cs32f10x_gpio.o
-    0x080020dc   0x080020dc   0x00000020   Code   RO         1340    i.gpio_pin_remap_config  cs32f10x_gpio.o
-    0x080020fc   0x080020fc   0x0000006c   Code   RO            5    i.main              main.o
-    0x08002168   0x08002168   0x00000070   Code   RO         1499    i.nvic_init         cs32f10x_misc.o
-    0x080021d8   0x080021d8   0x00000014   Code   RO         1622    i.rcu_adcclk_config  cs32f10x_rcu.o
-    0x080021ec   0x080021ec   0x000000e0   Code   RO         2254    i.set_sysclk_freq_72M  system_cs32f10x.o
-    0x080022cc   0x080022cc   0x00000040   Code   RO         1828    i.tim_base_init     cs32f10x_tim.o
-    0x0800230c   0x0800230c   0x00000022   Code   RO         1830    i.tim_chcc_enable_ctrl  cs32f10x_tim.o
-    0x0800232e   0x0800232e   0x00000002   PAD
-    0x08002330   0x08002330   0x000000a8   Code   RO         1841    i.tim_choc_init     cs32f10x_tim.o
-    0x080023d8   0x080023d8   0x00000110   Code   RO         1847    i.tim_def_init      cs32f10x_tim.o
-    0x080024e8   0x080024e8   0x00000006   Code   RO         1857    i.tim_prescaler_set  cs32f10x_tim.o
-    0x080024ee   0x080024ee   0x0000002c   Code   RO          195    i.tim_pwm_output_enable_ctrl  timer.o
-    0x0800251a   0x0800251a   0x00000002   PAD
-    0x0800251c   0x0800251c   0x0000006c   Code   RO          196    i.timer1_channel_gpiomode  timer.o
-    0x08002588   0x08002588   0x00000048   Code   RO          347    i.uvled_current_detection  adc.o
-    0x080025d0   0x080025d0   0x000000fc   Code   RO          348    i.uvled_current_error  adc.o
-    0x080026cc   0x080026cc   0x0000005d   Data   RO          477    .constdata          tm1639.o
-    0x08002729   0x08002729   0x00000003   PAD
-    0x0800272c   0x0800272c   0x00000020   Data   RO         2597    Region$$Table       anon$$obj.o
+    0x08000184   0x08000184   0x00000024   Code   RO          184    i.Bueezr_Config     timer.o
+    0x080001a8   0x080001a8   0x0000004c   Code   RO          185    i.Buzzer_Switch     timer.o
+    0x080001f4   0x080001f4   0x000000f6   Code   RO          458    i.CH_LED_switch     tm1639.o
+    0x080002ea   0x080002ea   0x00000002   PAD
+    0x080002ec   0x080002ec   0x00000190   Code   RO          340    i.DMA1_Channel1_IRQHandler  adc.o
+    0x0800047c   0x0800047c   0x000000a4   Code   RO          160    i.Init_Gpio         gpio.o
+    0x08000520   0x08000520   0x0000005c   Code   RO          461    i.Init_TM1639       tm1639.o
+    0x0800057c   0x0800057c   0x0000019c   Code   RO          187    i.Init_Timer1       timer.o
+    0x08000718   0x08000718   0x000000c0   Code   RO          188    i.Init_Timer2       timer.o
+    0x080007d8   0x080007d8   0x00000078   Code   RO          189    i.Init_Timer3       timer.o
+    0x08000850   0x08000850   0x00000020   Code   RO          119    i.Init_uvch         sys.o
+    0x08000870   0x08000870   0x00000084   Code   RO          652    i.Key_Bk_Scan       application.o
+    0x080008f4   0x080008f4   0x00000084   Code   RO          653    i.Key_Ch_Scan       application.o
+    0x08000978   0x08000978   0x00000084   Code   RO          654    i.Key_Down_Scan     application.o
+    0x080009fc   0x080009fc   0x00000084   Code   RO          655    i.Key_Fw_Scan       application.o
+    0x08000a80   0x08000a80   0x00000028   Code   RO          656    i.Key_Handle        application.o
+    0x08000aa8   0x08000aa8   0x00000084   Code   RO          657    i.Key_Mode_Scan     application.o
+    0x08000b2c   0x08000b2c   0x0000008c   Code   RO          658    i.Key_Set_Scan      application.o
+    0x08000bb8   0x08000bb8   0x00000084   Code   RO          659    i.Key_Up_Scan       application.o
+    0x08000c3c   0x08000c3c   0x00000080   Code   RO          660    i.Key_Uvon_Scan     application.o
+    0x08000cbc   0x08000cbc   0x000000c2   Code   RO          661    i.PHY_Light_ModeLED  application.o
+    0x08000d7e   0x08000d7e   0x00000002   PAD
+    0x08000d80   0x08000d80   0x00000050   Code   RO          662    i.PHY_Mode_Switch   application.o
+    0x08000dd0   0x08000dd0   0x00000030   Code   RO          594    i.PHY_Set_UVLed_Time  uvled.o
+    0x08000e00   0x08000e00   0x0000015c   Code   RO          595    i.PHY_UVLed_CheckIn  uvled.o
+    0x08000f5c   0x08000f5c   0x000000f4   Code   RO          596    i.PHY_UVLed_Select  uvled.o
+    0x08001050   0x08001050   0x00000038   Code   RO          597    i.PHY_UVon_ChLed    uvled.o
+    0x08001088   0x08001088   0x0000052c   Code   RO          663    i.PHY_UvLed_Mode_Handle  application.o
+    0x080015b4   0x080015b4   0x00000044   Code   RO          462    i.ReadByte          tm1639.o
+    0x080015f8   0x080015f8   0x00000008   Code   RO         2263    i.SetSysClock       system_cs32f10x.o
+    0x08001600   0x08001600   0x00000060   Code   RO         2265    i.SystemInit        system_cs32f10x.o
+    0x08001660   0x08001660   0x0000009c   Code   RO          190    i.TIM3_IRQHandler   timer.o
+    0x080016fc   0x080016fc   0x0000003c   Code   RO          463    i.TM1639_Clear      tm1639.o
+    0x08001738   0x08001738   0x00000028   Code   RO          464    i.TM1639_DelayUs    tm1639.o
+    0x08001760   0x08001760   0x00000058   Code   RO          466    i.TM1639_DisplayChar_Num  tm1639.o
+    0x080017b8   0x080017b8   0x00000080   Code   RO          467    i.TM1639_DisplayNum  tm1639.o
+    0x08001838   0x08001838   0x0000007c   Code   RO          469    i.TM1639_Display_UVLED_Char  tm1639.o
+    0x080018b4   0x080018b4   0x00000068   Code   RO          470    i.TM1639_LED_switch  tm1639.o
+    0x0800191c   0x0800191c   0x00000178   Code   RO          471    i.TM1639_Read_Key   tm1639.o
+    0x08001a94   0x08001a94   0x00000054   Code   RO          472    i.TM1639_SendByte   tm1639.o
+    0x08001ae8   0x08001ae8   0x0000002c   Code   RO          473    i.TM1639_SendCmd    tm1639.o
+    0x08001b14   0x08001b14   0x00000014   Code   RO          474    i.TM1639_SetBrightness  tm1639.o
+    0x08001b28   0x08001b28   0x0000003c   Code   RO          475    i.TM1639_WriteByte  tm1639.o
+    0x08001b64   0x08001b64   0x000000b0   Code   RO          297    i.USART1_IRQHandler  usart.o
+    0x08001c14   0x08001c14   0x00000090   Code   RO          191    i.UV_LED_PwmSet     timer.o
+    0x08001ca4   0x08001ca4   0x0000007c   Code   RO          193    i._Bueezr_Handle    timer.o
+    0x08001d20   0x08001d20   0x0000000e   Code   RO         2611    i.__scatterload_copy  mc_w.l(handlers.o)
+    0x08001d2e   0x08001d2e   0x00000002   Code   RO         2612    i.__scatterload_null  mc_w.l(handlers.o)
+    0x08001d30   0x08001d30   0x0000000e   Code   RO         2613    i.__scatterload_zeroinit  mc_w.l(handlers.o)
+    0x08001d3e   0x08001d3e   0x00000002   PAD
+    0x08001d40   0x08001d40   0x0000002c   Code   RO          664    i._clear_KeyStaFlag  application.o
+    0x08001d6c   0x08001d6c   0x00000074   Code   RO          194    i._timer_uvon_scan  timer.o
+    0x08001de0   0x08001de0   0x000000c8   Code   RO         1350    i.gpio_mode_config  cs32f10x_gpio.o
+    0x08001ea8   0x08001ea8   0x00000020   Code   RO         1352    i.gpio_pin_remap_config  cs32f10x_gpio.o
+    0x08001ec8   0x08001ec8   0x00000074   Code   RO            5    i.main              main.o
+    0x08001f3c   0x08001f3c   0x00000124   Code   RO          665    i.menuset_handle    application.o
+    0x08002060   0x08002060   0x00000070   Code   RO         1511    i.nvic_init         cs32f10x_misc.o
+    0x080020d0   0x080020d0   0x000000e0   Code   RO         2266    i.set_sysclk_freq_72M  system_cs32f10x.o
+    0x080021b0   0x080021b0   0x00000040   Code   RO         1840    i.tim_base_init     cs32f10x_tim.o
+    0x080021f0   0x080021f0   0x00000022   Code   RO         1842    i.tim_chcc_enable_ctrl  cs32f10x_tim.o
+    0x08002212   0x08002212   0x00000002   PAD
+    0x08002214   0x08002214   0x000000a8   Code   RO         1853    i.tim_choc_init     cs32f10x_tim.o
+    0x080022bc   0x080022bc   0x00000110   Code   RO         1859    i.tim_def_init      cs32f10x_tim.o
+    0x080023cc   0x080023cc   0x00000006   Code   RO         1869    i.tim_prescaler_set  cs32f10x_tim.o
+    0x080023d2   0x080023d2   0x00000002   PAD
+    0x080023d4   0x080023d4   0x0000006c   Code   RO          196    i.timer1_channel_gpiomode  timer.o
+    0x08002440   0x08002440   0x00000048   Code   RO          347    i.uvled_current_detection  adc.o
+    0x08002488   0x08002488   0x000000fc   Code   RO          348    i.uvled_current_error  adc.o
+    0x08002584   0x08002584   0x0000005d   Data   RO          477    .constdata          tm1639.o
+    0x080025e1   0x080025e1   0x00000003   PAD
+    0x080025e4   0x080025e4   0x00000020   Data   RO         2609    Region$$Table       anon$$obj.o
 
 
-    Execution Region RW_IRAM1 (Exec base: 0x20000000, Load base: 0x0800274c, Size: 0x00000798, Max: 0x00005000, ABSOLUTE, COMPRESSED[0x000001bc])
+    Execution Region RW_IRAM1 (Exec base: 0x20000000, Load base: 0x08002604, Size: 0x000007a0, Max: 0x00005000, ABSOLUTE, COMPRESSED[0x000001bc])
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x20000000   COMPRESSED   0x0000001e   Data   RW          122    .data               sys.o
-    0x2000001e   COMPRESSED   0x00000264   Data   RW          198    .data               timer.o
-    0x20000282   COMPRESSED   0x00000002   Data   RW          300    .data               usart.o
-    0x20000284   COMPRESSED   0x0000000b   Data   RW          350    .data               adc.o
-    0x2000028f   COMPRESSED   0x00000001   PAD
-    0x20000290   COMPRESSED   0x00000002   Data   RW          478    .data               tm1639.o
-    0x20000292   COMPRESSED   0x00000020   Data   RW          664    .data               application.o
-    0x200002b2   COMPRESSED   0x00000002   PAD
-    0x200002b4        -       0x000000ce   Zero   RW          121    .bss                sys.o
-    0x20000382        -       0x0000000a   Zero   RW          299    .bss                usart.o
-    0x2000038c        -       0x0000000c   Zero   RW          349    .bss                adc.o
-    0x20000398        -       0x00000400   Zero   RW         2241    STACK               startup_cs32f103xb.o
+    0x20000000   COMPRESSED   0x0000001f   Data   RW          122    .data               sys.o
+    0x2000001f   COMPRESSED   0x00000001   PAD
+    0x20000020   COMPRESSED   0x00000264   Data   RW          198    .data               timer.o
+    0x20000284   COMPRESSED   0x00000002   Data   RW          300    .data               usart.o
+    0x20000286   COMPRESSED   0x0000000b   Data   RW          350    .data               adc.o
+    0x20000291   COMPRESSED   0x00000001   PAD
+    0x20000292   COMPRESSED   0x00000002   Data   RW          478    .data               tm1639.o
+    0x20000294   COMPRESSED   0x00000023   Data   RW          666    .data               application.o
+    0x200002b7   COMPRESSED   0x00000001   PAD
+    0x200002b8        -       0x000000ce   Zero   RW          121    .bss                sys.o
+    0x20000386        -       0x0000000a   Zero   RW          299    .bss                usart.o
+    0x20000390        -       0x0000000c   Zero   RW          349    .bss                adc.o
+    0x2000039c   COMPRESSED   0x00000004   PAD
+    0x200003a0        -       0x00000400   Zero   RW         2253    STACK               startup_cs32f103xb.o
 
 
 ==============================================================================
@@ -1374,28 +1342,25 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
 
-      1368        128          0         11         12      10036   adc.o
-      1928        218          0         32          0       6147   application.o
-       230          8          0          0          0       1940   cs32f10x_adc.o
-       144         14          0          0          0       1774   cs32f10x_dma.o
+       724         58          0         11         12       2692   adc.o
+      3034        268          0         35          0       9176   application.o
        232          6          0          0          0       2151   cs32f10x_gpio.o
        112         12          0          0          0       1304   cs32f10x_misc.o
-        20          4          0          0          0        540   cs32f10x_rcu.o
        544         52          0          0          0       3934   cs32f10x_tim.o
        164         22          0          0          0        460   gpio.o
-       108         14          0          0          0     143648   main.o
+       116         16          0          0          0     135688   main.o
         36          8        236          0       1024        796   startup_cs32f103xb.o
-        32          6          0         30        206       3609   sys.o
+        32          6          0         31        206       3657   sys.o
        328         28          0          0          0       2133   system_cs32f10x.o
-      1884        156          0        612          0      24745   timer.o
+      1484        134          0        612          0      23126   timer.o
       1534         66         93          2          0       8468   tm1639.o
        176         22          0          2         10       1301   usart.o
-       700         52          0          0          0       2528   uvled.o
+       696         48          0          0          0       2145   uvled.o
 
     ----------------------------------------------------------------------
-      9548        816        364        692       1252     215514   Object Totals
+      9220        746        364        696       1256     197031   Object Totals
          0          0         32          0          0          0   (incl. Generated)
-         8          0          3          3          0          0   (incl. Padding)
+         8          0          3          3          4          0   (incl. Padding)
 
     ----------------------------------------------------------------------
 
@@ -1433,15 +1398,15 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-      9696        832        364        692       1252     212486   Grand Totals
-      9696        832        364        444       1252     212486   ELF Image Totals (compressed)
-      9696        832        364        444          0          0   ROM Totals
+      9368        762        364        696       1256     194367   Grand Totals
+      9368        762        364        444       1256     194367   ELF Image Totals (compressed)
+      9368        762        364        444          0          0   ROM Totals
 
 ==============================================================================
 
-    Total RO  Size (Code + RO Data)                10060 (   9.82kB)
-    Total RW  Size (RW Data + ZI Data)              1944 (   1.90kB)
-    Total ROM Size (Code + RO Data + RW Data)      10504 (  10.26kB)
+    Total RO  Size (Code + RO Data)                 9732 (   9.50kB)
+    Total RW  Size (RW Data + ZI Data)              1952 (   1.91kB)
+    Total ROM Size (Code + RO Data + RW Data)      10176 (   9.94kB)
 
 ==============================================================================
 

@@ -25,6 +25,7 @@ CH_UVON Timer_Uvon[4] = {0};
 BaseFlagStu UVCh_Check = {0};
 Proj_Stu Set_Mode = {0};
 u8 time_adc_wait = 0;
+u8 time_keysta_del = 0;
 
 //system_clock = 72MHz.
 void RCC_Configuration(void)

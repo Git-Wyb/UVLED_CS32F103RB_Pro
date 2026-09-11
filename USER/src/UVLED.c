@@ -77,6 +77,7 @@ void PHY_UVLed_CheckIn(void)
 
 void PHY_UVLed_Select(u8 ch)
 {
+    u8 ci = 0;
     switch(ch)
     {
         case 1:
@@ -129,6 +130,9 @@ void PHY_UVLed_Select(u8 ch)
             PHY_CH[3].Option = 0;
             break;
     }
-
+    for(ci = 0; ci < CHNUM; ci++)
+    {
+        CH_LED_switch(ci, 0, PHY_CH[ci].Option);
+    }
 }
 

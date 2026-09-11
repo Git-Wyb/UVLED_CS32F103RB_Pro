@@ -37,6 +37,7 @@ typedef enum
     LED_CH2_GREEN,
     LED_CH3_GREEN,
     LED_CH4_GREEN,
+    LED_OFF
 }LED_ENUM;
 
 typedef enum
