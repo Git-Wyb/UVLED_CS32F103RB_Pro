@@ -8,6 +8,7 @@
 #include "cs32f10x_gpio.h"
 #include "TM1639.h"
 #include "adc.h"
+#include "UVLED.h"
 
 u16 timer_ch_buff[] = {GPIO_PIN_8,GPIO_PIN_9,GPIO_PIN_10,GPIO_PIN_11};
 
@@ -76,10 +77,10 @@ void TIM3_IRQHandler(void)
         if(time_keyscan) time_keyscan--;
         if(time_adc_conv) time_adc_conv--;
         if(flag_adc_en && time_adc_wait) time_adc_wait--;
-        time_10ms++;
-        if(time_10ms >= 100)
+        time_100ms++;
+        if(time_100ms >= 100)
         {
-            time_10ms = 0;
+            time_100ms = 0;
             _timer_uvon_scan();
         }
         _Bueezr_Handle();
@@ -308,9 +309,9 @@ void UV_LED_Switch(void)
         {
             if(PHY_CH[channel].Uvon == 0) PHY_CH[channel].Uvon = 1;
             else PHY_CH[channel].Uvon = 0;
-            CH_LED_switch(channel, PHY_CH[channel].Error, PHY_CH[channel].Uvon);
+            CH_LED_switch(channel, PHY_CH[channel].Error_Connect, PHY_CH[channel].Uvon);
             
-            if(PHY_CH[channel].Error == 1) PHY_CH[channel].Uvon = 0;
+            if(PHY_CH[channel].Error_Connect == 1) PHY_CH[channel].Uvon = 0;
             
             if(PHY_CH[channel].Uvon == 0) //uv led off
             {
@@ -335,14 +336,7 @@ void UV_LED_Switch(void)
             }
         }
     }
-    if(Check_UvLed_Sta()) Bueezr_Config(200,0,0);
-}
-
-u8 Check_UvLed_Sta(void)
-{
-    u8 i = 0;
-    i = PHY_CH[0].Uvon | (PHY_CH[1].Uvon<<1) || (PHY_CH[2].Uvon<<2) || (PHY_CH[3].Uvon<<3);
-    return i;
+    if(_check_uvled_option()) Bueezr_Config(200,0,0);
 }
  
 #if (FREQ_PWM == 50)
@@ -367,6 +361,7 @@ void UV_LED_PwmSet(u8 channel, u8 pwm)
     {
         PHY_CH[channel].Level = pwm;
         TIM1->CHXCCVAL[channel] = pwm_buf[pwm-1] * 2;
+        SEL_CH.Level = pwm;
     }
 }
 

@@ -225,7 +225,7 @@ void uvled_current_error(void)
 
 void uvled_current_detection(void)
 {
-    u8 i = 0;
+//    u8 i = 0;
     if(flag_adc_ok == 1)
     {
         flag_adc_ok = 0;

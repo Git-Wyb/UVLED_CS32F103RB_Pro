@@ -17,7 +17,6 @@
 u8 beepcnt = 0;
 int main(void)
 {
-    Init_uvch();
     Init_Gpio();
     Init_Timer1(); //f=50k
     Init_Timer3();
@@ -26,8 +25,7 @@ int main(void)
     Bueezr_Config(200,0,0);
     //Init_Usart1(9600);
     Init_TM1639();
-    TM1639_Display_UVLED_Char(DISPLAY_888);//DISPLAY_RUN
-    PHY_CH[0].Option = 1;
+    Initial_poweron_state();
     //while(1);
     while(1)
     {
@@ -37,7 +35,8 @@ int main(void)
             time_keyscan = 20;
             TM1639_Read_Key();
             Key_Handle();
-            PHY_UVLed_CheckIn();
+            //PHY_UVLed_CheckIn();
+            //PHY_UVLed_Connect_Check();
         }
 
         if(time_adc_conv == 0)
@@ -56,7 +55,7 @@ void Send_Logo(void)
     if(flag_rx_done == 1)
     {
         flag_rx_done = 0;
-        printf("\r\n2026.09.02,Soft Version V0.00\r\n");
+        printf("\r\n2026.09.18,Soft Version V0.00\r\n");
         //printf("ADC Cover_Value    = %d(mV)\r\n",CalVal.Cover_Value);
     }
 }

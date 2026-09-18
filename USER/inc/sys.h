@@ -15,6 +15,7 @@ typedef unsigned int u32;
 typedef float f32;
 
 #define CHNUM 4
+#define TIME_COUNT_MAX 9990 //9990*100=999s
 
 #define CHECK0      0x00
 #define CHECK1      0x01
@@ -85,33 +86,49 @@ typedef struct{
 typedef struct{
     NUMSTU Cumulative_Time;
     u8 Uvch;
-    u32 Time;
+    u16 Time; //max=9990//9990*100ms=999s
     u8 Level;
     u8 Uvon;
-    u8 Error;
+    u8 Error_Connect;
     u8 Option;
     u8 Ready;
     u16 Current;
     u8 Error_Curr;
 }CH_STU;
 
+typedef enum{
+    NO_ERROR = 0,
+    Err_Eo1 = 12,
+    Err_FE2 = 32,
+    Err_Ld1 = 41,
+    Err_Ld2 = 42,
+    Err_Ld3 = 43,
+    Err_Ld4 = 44
+}ERROR_CODE;
+
 typedef struct{
     u16 uvontimer;
     u8  uvoff_flag;
 }CH_UVON;
 
-#define flag_buzzer_sw  Flag0.b0
-#define flag_rx_done    Flag0.b1
-#define flag_adc_ok     Flag0.b2
-#define flag_rx_head    Flag0.b3
-#define flag_error_over Flag0.b4
+#define flag_buzzer_sw   Flag0.b0
+#define flag_rx_done     Flag0.b1
+#define flag_adc_ok      Flag0.b2
+#define flag_rx_head     Flag0.b3
+#define flag_error_over  Flag0.b4
 #define flag_error_under Flag0.b5
-#define flag_adc_en     Flag0.b6
+#define flag_adc_en      Flag0.b6
+#define flag_keyup_long  Flag0.b7
+
+#define flag_keydown_long  Flag1.b0
+#define flag_keybk_long    Flag1.b1
+#define flag_keyfw_long    Flag1.b2
 
 extern BaseFlagStu Flag0;
+extern BaseFlagStu Flag1;
 extern KEYSTU KeySta;
 extern u16 time_ms;
-extern u16 time_10ms;
+extern u16 time_100ms;
 extern u16 time_keyscan;
 extern u8 keysta_last;
 extern KEYSTU KeyStaNow;
@@ -129,7 +146,12 @@ extern BaseFlagStu UVCh_Check;
 extern Proj_Stu Set_Mode;
 extern u8 time_adc_wait;
 extern u8 time_keysta_del;
+extern CH_STU SEL_CH;
+extern u8 run_ch;
+extern NUMSTU Time_stu;
 
 void Init_uvch(void);
+void Initial_poweron_state(void);
+void Initial_UVLed_CheckIn(void);
 
 #endif

@@ -37,7 +37,12 @@ typedef enum
     LED_CH2_GREEN,
     LED_CH3_GREEN,
     LED_CH4_GREEN,
-    LED_OFF
+    LED_ALL_ON,
+    LED_MODE_OFF,
+    LED_CH_OFF,
+    LED_RUN_MODE,
+    LED_SETTING_MODE,
+    LED_ALL_OFF,
 }LED_ENUM;
 
 typedef enum
@@ -62,11 +67,19 @@ typedef enum
     DISPLAY_CH2,
     DISPLAY_CH3,
     DISPLAY_CH4,
-    DISPLAY_ALL,
+    DISPLAY_ALL, 
     DISPLAY_RUN,
     DISPLAY_SETTING,
     DISPLAY_MENU,
     DISPLAY_HOUR,
+    DISPLAY_BLANK, //blank
+    DISPLAY_VER,
+    DISPLAY_Eo1,
+    DISPLAY_FE2,
+    DISPLAY_Ld1,
+    DISPLAY_Ld2,
+    DISPLAY_Ld3,
+    DISPLAY_Ld4,
     THE_END
 }DISPLAY_ENUM;
 
