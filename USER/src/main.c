@@ -14,6 +14,8 @@
 #include "TM1639.h"
 #include "UVLED.h"
 
+void Send_Logo(void);
+
 u8 beepcnt = 0;
 int main(void)
 {
@@ -29,23 +31,17 @@ int main(void)
     //while(1);
     while(1)
     {
-        //wait_ms(20);
         if(time_keyscan == 0)
         {
             time_keyscan = 20;
             TM1639_Read_Key();
             Key_Handle();
-            //PHY_UVLed_CheckIn();
-            //PHY_UVLed_Connect_Check();
+            PHY_UVLed_Connect_Check();
         }
-
-        if(time_adc_conv == 0)
-        {
-            time_adc_conv = 50;
-        }
-        uvled_current_detection();
-        PHY_UVon_ChLed();
-        uvled_current_error();
+        //uvled_current_detection();
+        PHY_UvLed_WaitOff();
+        uvled_current_error_handle();
+        Send_Logo();
     }
 }
 
@@ -55,7 +51,7 @@ void Send_Logo(void)
     if(flag_rx_done == 1)
     {
         flag_rx_done = 0;
-        printf("\r\n2026.09.18,Soft Version V0.00\r\n");
+        printf("\r\n2026.09.22,Soft Version V0.02\r\n");
         //printf("ADC Cover_Value    = %d(mV)\r\n",CalVal.Cover_Value);
     }
 }

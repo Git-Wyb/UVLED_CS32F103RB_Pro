@@ -4,6 +4,7 @@
 #include "cs32f10x_gpio.h"
 #include "cs32f10x_rcu.h"
 #include "cs32f10x_misc.h"
+#include "UVLED.h"
 
 #define CNTMAX  2
 /*
@@ -57,9 +58,11 @@ void Key_Handle(void)
     Key_Uvon_Scan();
     Key_Ch_Scan();
     Key_Mode_Scan();
+    uvled_ready_check();
 #if (PRO_MODE == 1)
     PHY_UvLed_Mode_Handle();
 #endif
+    dispaly_uvled_real_time(run_ch);
 }
 
 #if (PRO_MODE == 0)
@@ -533,23 +536,21 @@ void Key_Mode_Scan(void)
 
 void PHY_UvLed_Mode_Handle(void)
 {
-    if(_check_uvled_sta())  return;
-    
     if(KeyStaFlag.Mode)
     {
+        _clear_KeyStaFlag();
+        if(_check_uvled_sta())  return;
+        
         if(rs_mode != SETTING_MODE)
         {
             rs_mode = SETTING_MODE;
-            _clear_uvled_option();
             PHY_Mode_Switch(rs_mode);
         }
         else
         {
             rs_mode = RUN_MODE;
-            _clear_uvled_option();
             PHY_Mode_Switch(rs_mode);
         }
-        _clear_KeyStaFlag();
     }
     switch(rs_mode)
     {
@@ -557,20 +558,21 @@ void PHY_UvLed_Mode_Handle(void)
             if(KeyStaFlag.Uvon)
             {
                 _clear_KeyStaFlag();
+                PHY_UvLed_switch(run_ch);
             }
             else if(KeyStaFlag.Ch)
             {
                 _clear_KeyStaFlag();
                 run_ch++;
-                if(run_ch > 5) run_ch = 1;
+                if(run_ch > CHNUM+1) run_ch = 1;
+                if(_check_uvled_errLd123() && run_ch==CHNUM+1) run_ch = 1; //Error occurred; selecting "all" is not allowed.
                 PHY_UVLed_Select(run_ch);
                 PHY_Light_ModeLED(LED_MODE_OFF);
-                PHY_Light_ModeLED(LED_CH_OFF);
             }
             else if(KeyStaFlag.Up)
             {
                 _clear_KeyStaFlag();
-                if(_check_uvled_option() && run_ch < 5)
+                if(_check_uvled_option() && run_ch < CHNUM+1)
                 {
                     TM1639_DisplayNum(_get_uvled_level());
                     PHY_Light_ModeLED(LED_LEVEL);
@@ -579,7 +581,7 @@ void PHY_UvLed_Mode_Handle(void)
             else if(KeyStaFlag.Down)
             {
                 _clear_KeyStaFlag();
-                if(_check_uvled_option() && run_ch < 5)
+                if(_check_uvled_option() && run_ch < CHNUM+1)
                 {
                     TM1639_DisplayNum(_get_uvled_level());
                     PHY_Light_ModeLED(LED_LEVEL);
@@ -588,7 +590,7 @@ void PHY_UvLed_Mode_Handle(void)
             else if(KeyStaFlag.Bk)
             {
                 _clear_KeyStaFlag();
-                if(_check_uvled_option() && run_ch < 5)
+                if(_check_uvled_option() && run_ch < CHNUM+1)
                 {
                     display_uvled_time(_get_uvled_time());
                     PHY_Light_ModeLED(LED_TIME);
@@ -597,7 +599,7 @@ void PHY_UvLed_Mode_Handle(void)
             else if(KeyStaFlag.Fw)
             {
                 _clear_KeyStaFlag();
-                if(_check_uvled_option() && run_ch < 5)
+                if(_check_uvled_option() && run_ch < CHNUM+1)
                 {
                     display_uvled_time(_get_uvled_time());
                     PHY_Light_ModeLED(LED_TIME);
@@ -616,14 +618,12 @@ void PHY_UvLed_Mode_Handle(void)
                 if(KeyStaFlag.Bk)
                 {
                     _clear_KeyStaFlag();
-                    _clear_uvled_option();
                     rs_mode = MENU_MODE;
                     PHY_Mode_Switch(rs_mode);
                 }
                 else if(KeyStaFlag.Fw)
                 {
                     _clear_KeyStaFlag();
-                    _clear_uvled_option();
                     rs_mode = HOUR_MODE;
                     PHY_Mode_Switch(rs_mode);
                 }
@@ -631,15 +631,15 @@ void PHY_UvLed_Mode_Handle(void)
             else if(KeyStaFlag.Ch)
             {
                 _clear_KeyStaFlag();
-                chnum++;
-                if(chnum > 4) chnum = 1;
-                PHY_UVLed_Select(chnum);
+                run_ch++;
+                if(run_ch > CHNUM) run_ch = 1;
+                PHY_UVLed_Select(run_ch);
                 PHY_Light_ModeLED(LED_MODE_OFF);
                 PHY_Light_ModeLED(LED_CH_OFF);
             }
             else if(KeyStaFlag.Up)
             {
-                if(_check_uvled_option())
+                if(_check_uvled_option() && run_ch <= CHNUM)
                 {
                     _keyup_cnt++;
                     if(flag_keyup_long == 0 || _keyup_cnt >= 15) //300ms
@@ -650,11 +650,11 @@ void PHY_UvLed_Mode_Handle(void)
                         chlevel = _get_uvled_level();
                         if(flag_keyup_long) 
                         {
-                            if(chlevel < 90) chlevel += 10;
+                            if(chlevel <= 90) chlevel += 10;
                         }
                         else if(chlevel < 100) chlevel++;
 
-                        UV_LED_PwmSet(SEL_CH.Uvch-1,chlevel);
+                        UV_LED_PwmSet(run_ch-1,chlevel);
                         TM1639_DisplayNum(chlevel);
                         flag_keyup_long = 1;
                     }
@@ -662,22 +662,21 @@ void PHY_UvLed_Mode_Handle(void)
             }
             else if(KeyStaFlag.Down)
             {
-                if(_check_uvled_option())
+                if(_check_uvled_option() && run_ch <= CHNUM)
                 {
                     _keydown_cnt++;
                     if(flag_keydown_long == 0 || _keydown_cnt >= 15) //300ms
                     {
                         if(flag_keydown_long == 0) _keydown_cnt = 0;
                         else _keydown_cnt = 10;
-                        
-                        
+
                         chlevel = _get_uvled_level();
                         if(flag_keydown_long)
                         {
-                            if(chlevel > 10) chlevel -= 10;
+                            if(chlevel >= 10) chlevel -= 10;
                         }
                         else if(chlevel != 0) chlevel--;
-                        UV_LED_PwmSet(SEL_CH.Uvch-1,chlevel);
+                        UV_LED_PwmSet(run_ch-1,chlevel);
                         TM1639_DisplayNum(chlevel);
                         flag_keydown_long = 1;
                     }
@@ -685,7 +684,7 @@ void PHY_UvLed_Mode_Handle(void)
             }
             else if(KeyStaFlag.Bk)
             {
-                if(_check_uvled_option())
+                if(_check_uvled_option() && run_ch <= CHNUM)
                 {
                     _keybk_cnt++;
                     if(flag_keybk_long == 0 || _keybk_cnt >= 15) //300ms
@@ -696,7 +695,7 @@ void PHY_UvLed_Mode_Handle(void)
                         chtime = _get_uvled_time();
                         if(flag_keybk_long)
                         {
-                            if(chtime == 999) chtime = 1000;
+                            if(chtime>990 && chtime<=999) chtime = 1000;
                             else if(chtime < 999) chtime += 10; //1s step
                             else if(chtime < TIME_COUNT_MAX-100) chtime += 100; //10s step
                         }
@@ -715,7 +714,7 @@ void PHY_UvLed_Mode_Handle(void)
             }
             else if(KeyStaFlag.Fw)
             {
-                if(_check_uvled_option())
+                if(_check_uvled_option() && run_ch <= CHNUM)
                 {
                     _keyfw_cnt++;
                     if(flag_keyfw_long == 0 || _keyfw_cnt >= 15) //300ms
@@ -726,13 +725,13 @@ void PHY_UvLed_Mode_Handle(void)
                         chtime = _get_uvled_time();
                         if(flag_keyfw_long)
                         {
-                            if(chtime > 999) chtime -= 100;
-                            else if(chtime > 10) chtime -= 10;
+                            if(chtime > 999) chtime -= 100; //10s step
+                            else if(chtime > 10) chtime -= 10; //1s step
                         }
                         else
                         {
-                            if(chtime > 1000) chtime -= 10;
-                            else if(chtime != 0) chtime--;
+                            if(chtime > 1000) chtime -= 10; //1s step
+                            else if(chtime != 0) chtime--; //100ms step
                         }
                         PHY_Set_UVLed_Time(chtime);
                         display_uvled_time(chtime);
@@ -836,7 +835,7 @@ void PHY_UvLed_Mode_Handle(void)
 void _set_ch_temporary_param(u8 ch)
 {
     if(ch < 1) ch = 1;
-    chnum = ch;
+    run_ch = ch;
     chlevel = PHY_CH[ch-1].Level;
     chtime = PHY_CH[ch-1].Time;
 }
@@ -847,17 +846,12 @@ void PHY_Mode_Switch(MODE mode)
     {
         case RUN_MODE:
             PHY_Light_ModeLED(LED_RUN_MODE);
-            TM1639_Display_UVLED_Char(DISPLAY_RUN);
-            //_uvled_ch_last(SEL_CH.Uvch);
-            //TM1639_Display_UVLED_Char((DISPLAY_ENUM)(SEL_CH.Uvch+15));
+            TM1639_Display_UVLED_Char((DISPLAY_ENUM)(run_ch+15));
             break;
         
         case SETTING_MODE:
             PHY_Light_ModeLED(LED_SETTING_MODE);
-            TM1639_Display_UVLED_Char(DISPLAY_SETTING);
-            //_uvled_ch_last(SEL_CH.Uvch);
-            //_set_ch_temporary_param(SEL_CH.Uvch);
-            //TM1639_Display_UVLED_Char((DISPLAY_ENUM)(SEL_CH.Uvch+15));
+            TM1639_Display_UVLED_Char((DISPLAY_ENUM)(run_ch+15));
             break;
         
         case MENU_MODE:
@@ -1147,4 +1141,12 @@ void display_uvled_time(u16 time)
         Time_stu.unit = time;
     }
     TM1639_DisplayUVtime(Time_stu);
+}
+
+void dispaly_uvled_real_time(u8 ch)
+{
+    if(ch < 1) return;
+    
+    if(ch>CHNUM && _check_uvled_sta() && uvonch_last>CHNUM && _check_uvled_current_err()==0) display_uvled_time(time_allch);
+    else if(PHY_CH[ch-1].Uvon && _check_uvled_ch_error(ch-1) == 0) display_uvled_time(Time_uvch[ch-1].timer);
 }

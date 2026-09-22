@@ -24,5 +24,6 @@ void PHY_Mode_Switch(MODE mode);
 void PHY_Light_ModeLED(LED_ENUM mode);
 void _set_ch_temporary_param(u8 ch);
 void display_uvled_time(u16 time);
+void dispaly_uvled_real_time(u8 ch);
 
 #endif

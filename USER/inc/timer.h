@@ -25,5 +25,6 @@ void timer1_channel_gpiomode(u8 chn,u8 type, u8 lev);
 void _Bueezr_Handle(void);
 void Bueezr_Config(u16 ontime, u16 offtime, u8 num);
 void _timer_uvon_scan(void);
+void tim_pwm_output_enable_ctrl(tim_reg_t* ptr_timer, uint16_t channel, u8 onoff);
 
 #endif

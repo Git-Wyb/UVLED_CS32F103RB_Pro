@@ -13,30 +13,30 @@
 u16 timer_ch_buff[] = {GPIO_PIN_8,GPIO_PIN_9,GPIO_PIN_10,GPIO_PIN_11};
 
 //f = 100K,PWM
-u16 pwm_buf[100] = {7,   14, 22, 29, 36, 43, 50, 58, 65, 72,
-                    79,  86, 94,101,108,115,122,130,137,144,
-                    151,158,166,173,180,187,194,202,209,216,
-                    223,230,238,245,252,259,266,274,281,288,
-                    295,302,310,317,324,331,338,346,353,360,
-                    367,374,382,389,396,403,410,418,425,432,
-                    439,446,454,461,468,475,482,490,497,504,
-                    511,518,526,533,540,547,554,562,569,576,
-                    583,590,598,605,612,619,626,634,641,648,
-                    655,662,670,677,684,691,698,706,713,720};
+u16 pwm100k_buf[101] = {0, 7,   14, 22, 29, 36, 43, 50, 58, 65, 72,
+                           79,  86, 94,101,108,115,122,130,137,144,
+                           151,158,166,173,180,187,194,202,209,216,
+                           223,230,238,245,252,259,266,274,281,288,
+                           295,302,310,317,324,331,338,346,353,360,
+                           367,374,382,389,396,403,410,418,425,432,
+                           439,446,454,461,468,475,482,490,497,504,
+                           511,518,526,533,540,547,554,562,569,576,
+                           583,590,598,605,612,619,626,634,641,648,
+                           655,662,670,677,684,691,698,706,713,720};
 
 u16 level_buff[100] = {0,144,166,180,194,208,223};
 
 //75K
-u16 pwm75k_buf[100] = {10,  19, 29, 38, 48, 58, 67, 77, 86, 96,
-                       106,115,125,134,144,154,163,173,182,192,
-                       202,211,221,230,240,250,259,269,278,288,
-                       298,307,317,326,336,346,355,365,374,384,
-                       394,403,413,422,432,442,451,461,470,480,
-                       490,499,509,518,528,538,547,557,566,576,
-                       586,595,605,614,624,634,643,653,662,672,
-                       682,691,701,710,720,730,739,749,758,768,
-                       778,787,797,806,816,826,835,845,854,864,
-                       874,883,893,902,912,922,931,941,950,960};
+u16 pwm75k_buf[101] = {0, 10,  19, 29, 38, 48, 58, 67, 77, 86, 96,
+                          106,115,125,134,144,154,163,173,182,192,
+                          202,211,221,230,240,250,259,269,278,288,
+                          298,307,317,326,336,346,355,365,374,384,
+                          394,403,413,422,432,442,451,461,470,480,
+                          490,499,509,518,528,538,547,557,566,576,
+                          586,595,605,614,624,634,643,653,662,672,
+                          682,691,701,710,720,730,739,749,758,768,
+                          778,787,797,806,816,826,835,845,854,864,
+                          874,883,893,902,912,922,931,941,950,960};
 
 void Init_Timer3(void)
 {
@@ -187,32 +187,36 @@ void timer1_channel_gpiomode(u8 chn,u8 type, u8 lev)
     }
     else //gpio
     {
-        if(PHY_CH[chn].Option == 1)
-        {
-            gpio_mode_config(GPIOA, timer_ch_buff[chn], GPIO_MODE_OUT_PP(GPIO_SPEED_HIGH));
-            if(lev == 0) __GPIO_PIN_RESET(GPIOA,timer_ch_buff[chn]);
-            else         __GPIO_PIN_SET(GPIOA,timer_ch_buff[chn]);
-        }
+        gpio_mode_config(GPIOA, timer_ch_buff[chn], GPIO_MODE_OUT_PP(GPIO_SPEED_HIGH));
+        if(lev == 0) __GPIO_PIN_RESET(GPIOA,timer_ch_buff[chn]);
+        else         __GPIO_PIN_SET(GPIOA,timer_ch_buff[chn]);
     }
 }
 
 void _timer_uvon_scan(void)
 {
     u8 ch = 0;
+    if(_check_uvled_sta())
+    {
+        if(time_allch < TIME_COUNT_MAX) time_allch++;
+    }
     for(ch = 0; ch < CHNUM; ch++)
     {
-        if(Timer_Uvon[ch].uvontimer && PHY_CH[ch].Uvon) 
+        if(PHY_CH[ch].Uvon)
         {
-            Timer_Uvon[ch].uvontimer--;
-            if(Timer_Uvon[ch].uvontimer == 0)
+            if(Time_uvch[ch].timer < TIME_COUNT_MAX) Time_uvch[ch].timer++;
+        }
+        if(PHY_CH[ch].Uvledon.timer && PHY_CH[ch].Uvon) 
+        {
+            PHY_CH[ch].Uvledon.timer--;
+            if(PHY_CH[ch].Uvledon.timer == 0)
             {
+                PHY_CH[ch].Uvledon.flag_off = 1;
+                PHY_Uvled_PwmSwitch(ch,0);
                 PHY_CH[ch].Uvon = 0;
-                Timer_Uvon[ch].uvoff_flag = 1;
-                timer1_channel_gpiomode(ch,1,0);
-                Bueezr_Config(200,0,0);
             }
         }
-    }
+    } 
 }
 
 u16 arr_period = 0;
@@ -316,8 +320,8 @@ void UV_LED_Switch(void)
             if(PHY_CH[channel].Uvon == 0) //uv led off
             {
                 timer1_channel_gpiomode(channel,1,0);
-                Timer_Uvon[channel].uvontimer = 0;
-                Timer_Uvon[channel].uvoff_flag = 0;
+                PHY_CH[channel].Uvledon.timer = 0;
+                PHY_CH[channel].Uvledon.flag_off = 0;
                 _UVLED_CurrCheck_Disable();
             }
             else //uv led on
@@ -331,7 +335,7 @@ void UV_LED_Switch(void)
                     timer1_channel_gpiomode(channel,0,0);
                     tim_pwm_output_enable_ctrl(TIM1,channel,PHY_CH[channel].Uvon);
                 }
-                Timer_Uvon[channel].uvontimer = PHY_CH[channel].Time;
+                PHY_CH[channel].Uvledon.timer = PHY_CH[channel].Time;
                 if(flag_adc_en == 0) _UVLED_CurrCheck_Enable();
             }
         }
@@ -343,7 +347,7 @@ void UV_LED_Switch(void)
 void UV_LED_PwmSet(u8 channel, u8 pwm)
 {
     if(pwm > 100) pwm = 100;
-    if(pwm == 0) pwm = 1;
+
     if(channel > CHNUM) return;
     
     if(channel == UVLED_CH_ALL)
@@ -352,15 +356,15 @@ void UV_LED_PwmSet(u8 channel, u8 pwm)
         PHY_CH[TIM_CHANNEL_2].Level = pwm;
         PHY_CH[TIM_CHANNEL_3].Level = pwm;
         PHY_CH[TIM_CHANNEL_4].Level = pwm;
-        TIM1->CHXCCVAL[TIM_CHANNEL_1] = pwm_buf[pwm-1] * 2;
-        TIM1->CHXCCVAL[TIM_CHANNEL_2] = pwm_buf[pwm-1] * 2;
-        TIM1->CHXCCVAL[TIM_CHANNEL_3] = pwm_buf[pwm-1] * 2;
-        TIM1->CHXCCVAL[TIM_CHANNEL_4] = pwm_buf[pwm-1] * 2;
+        TIM1->CHXCCVAL[TIM_CHANNEL_1] = pwm100k_buf[pwm] * 2;
+        TIM1->CHXCCVAL[TIM_CHANNEL_2] = pwm100k_buf[pwm] * 2;
+        TIM1->CHXCCVAL[TIM_CHANNEL_3] = pwm100k_buf[pwm] * 2;
+        TIM1->CHXCCVAL[TIM_CHANNEL_4] = pwm100k_buf[pwm] * 2;
     }
     else
     {
         PHY_CH[channel].Level = pwm;
-        TIM1->CHXCCVAL[channel] = pwm_buf[pwm-1] * 2;
+        TIM1->CHXCCVAL[channel] = pwm100k_buf[pwm] * 2;
         SEL_CH.Level = pwm;
     }
 }
@@ -369,7 +373,7 @@ void UV_LED_PwmSet(u8 channel, u8 pwm)
 void UV_LED_PwmSet(CH_ENUM channel, u8 pwm)
 {
     if(pwm > 100) pwm = 100;
-    if(pwm == 0) pwm = 1;
+
     if(channel > CHNUM) return;
     
     if(channel == UVLED_CH_ALL)
@@ -378,15 +382,15 @@ void UV_LED_PwmSet(CH_ENUM channel, u8 pwm)
         PHY_CH[TIM_CHANNEL_2].Level = pwm;
         PHY_CH[TIM_CHANNEL_3].Level = pwm;
         PHY_CH[TIM_CHANNEL_4].Level = pwm;
-        TIM1->CHXCCVAL[TIM_CHANNEL_1] = pwm75k_buf[pwm-1];
-        TIM1->CHXCCVAL[TIM_CHANNEL_2] = pwm75k_buf[pwm-1];
-        TIM1->CHXCCVAL[TIM_CHANNEL_3] = pwm75k_buf[pwm-1];
-        TIM1->CHXCCVAL[TIM_CHANNEL_4] = pwm75k_buf[pwm-1];
+        TIM1->CHXCCVAL[TIM_CHANNEL_1] = pwm75k_buf[pwm];
+        TIM1->CHXCCVAL[TIM_CHANNEL_2] = pwm75k_buf[pwm];
+        TIM1->CHXCCVAL[TIM_CHANNEL_3] = pwm75k_buf[pwm];
+        TIM1->CHXCCVAL[TIM_CHANNEL_4] = pwm75k_buf[pwm];
     }
     else
     {
         PHY_CH[channel].Level = pwm;
-        TIM1->CHXCCVAL[channel] = pwm75k_buf[pwm-1];
+        TIM1->CHXCCVAL[channel] = pwm75k_buf[pwm];
     }
 }
 
@@ -394,7 +398,7 @@ void UV_LED_PwmSet(CH_ENUM channel, u8 pwm)
 void UV_LED_PwmSet(CH_ENUM channel, u8 pwm)
 {
     if(pwm > 100) pwm = 100;
-    if(pwm == 0) pwm = 1;
+
     if(channel > CHNUM) return;
     
     if(channel == UVLED_CH_ALL)
@@ -403,15 +407,15 @@ void UV_LED_PwmSet(CH_ENUM channel, u8 pwm)
         PHY_CH[TIM_CHANNEL_2].Level = pwm;
         PHY_CH[TIM_CHANNEL_3].Level = pwm;
         PHY_CH[TIM_CHANNEL_4].Level = pwm;
-        TIM1->CHXCCVAL[TIM_CHANNEL_1] = pwm_buf[pwm-1];
-        TIM1->CHXCCVAL[TIM_CHANNEL_2] = pwm_buf[pwm-1];
-        TIM1->CHXCCVAL[TIM_CHANNEL_3] = pwm_buf[pwm-1];
-        TIM1->CHXCCVAL[TIM_CHANNEL_4] = pwm_buf[pwm-1];
+        TIM1->CHXCCVAL[TIM_CHANNEL_1] = pwm100k_buf[pwm];
+        TIM1->CHXCCVAL[TIM_CHANNEL_2] = pwm100k_buf[pwm];
+        TIM1->CHXCCVAL[TIM_CHANNEL_3] = pwm100k_buf[pwm];
+        TIM1->CHXCCVAL[TIM_CHANNEL_4] = pwm100k_buf[pwm];
     }
     else
     {
         PHY_CH[channel].Level = pwm;
-        TIM1->CHXCCVAL[channel] = pwm_buf[pwm-1];
+        TIM1->CHXCCVAL[channel] = pwm100k_buf[pwm];
     }
 }
 

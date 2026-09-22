@@ -26,19 +26,22 @@ u8 buzzer_num = 0;
 u16 Adc_Value_Buff[5][7] = {0};
 u16 time_adc_conv = 50;
 u16 uvled_time = 0;
-CH_UVON Timer_Uvon[4] = {0};
 BaseFlagStu UVCh_Check = {0};
 Proj_Stu Set_Mode = {0};
-u8 time_adc_wait = 0;
+u16 time_adc_wait = 0;
 u8 time_keysta_del = 0;
-u8 run_ch = 0;
+u8 run_ch = 1;
 NUMSTU Time_stu = {0};
-NUMSTU display_soft_version = { //Ver0.00
+CH_UVON Time_uvch[CHNUM] = {0};
+u16 time_allch = 0;
+u8 uvonch_last = 0;
+
+NUMSTU display_soft_version = { //Ver0.01
     .hundreds = 0,
     .point0 = 1,
     .decde = 0,
     .point1 = 0,
-    .unit = 0,
+    .unit = 2,
     .point2 = 0
 };
 
@@ -79,8 +82,11 @@ void Initial_poweron_state(void)
     wait_ms(1000);
     TM1639_DisplayUVtime(display_soft_version);
     wait_ms(1000);
-    //Initial_UVLed_CheckIn();
-    TM1639_Display_UVLED_Char(DISPLAY_RUN);
+    Initial_UVLed_CheckIn();
+    //TM1639_Display_UVLED_Char(DISPLAY_RUN);
+    //TM1639_Display_UVLED_Char(DISPLAY_CH1);
+    //run_ch = 1;
+    //PHY_UVLed_Select(run_ch);
 }
 
 void Initial_UVLed_CheckIn(void)
@@ -101,7 +107,8 @@ void Initial_UVLed_CheckIn(void)
         {
             PHY_CH[ch].Error_Connect = 1;
         }
+        else if(run_ch == 0) run_ch = ch+1;
     }
     if(_check_uvled_connect_err() == 0x0F) TM1639_Display_UVLED_Char(DISPLAY_Ld3);
-    else TM1639_Display_UVLED_Char(DISPLAY_RUN);
+    else PHY_UVLed_Select(run_ch);
 }

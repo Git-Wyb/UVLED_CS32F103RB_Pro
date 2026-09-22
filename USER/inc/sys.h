@@ -84,16 +84,25 @@ typedef struct{
 }NUMSTU;
 
 typedef struct{
+    u16 timer;
+    u8  flag_off;
+}CH_UVON;
+
+typedef struct{
     NUMSTU Cumulative_Time;
+    CH_UVON Uvledon;
     u8 Uvch;
     u16 Time; //max=9990//9990*100ms=999s
     u8 Level;
     u8 Uvon;
-    u8 Error_Connect;
     u8 Option;
     u8 Ready;
     u16 Current;
+    u8 flag_error_curr;
     u8 Error_Curr;
+    u8 Error_Connect;
+    u8 undercurr_cnt;
+    u8 overcurr_cnt;
 }CH_STU;
 
 typedef enum{
@@ -106,10 +115,6 @@ typedef enum{
     Err_Ld4 = 44
 }ERROR_CODE;
 
-typedef struct{
-    u16 uvontimer;
-    u8  uvoff_flag;
-}CH_UVON;
 
 #define flag_buzzer_sw   Flag0.b0
 #define flag_rx_done     Flag0.b1
@@ -141,14 +146,16 @@ extern u16 time_buzzer_off;
 extern u16 Adc_Value_Buff[5][7];
 extern u16 time_adc_conv;
 extern u16 uvled_time;
-extern CH_UVON Timer_Uvon[4];
 extern BaseFlagStu UVCh_Check;
 extern Proj_Stu Set_Mode;
-extern u8 time_adc_wait;
+extern u16 time_adc_wait;
 extern u8 time_keysta_del;
 extern CH_STU SEL_CH;
 extern u8 run_ch;
 extern NUMSTU Time_stu;
+extern CH_UVON Time_uvch[CHNUM];
+extern u16 time_allch;
+extern u8 uvonch_last;
 
 void Init_uvch(void);
 void Initial_poweron_state(void);

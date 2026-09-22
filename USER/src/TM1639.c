@@ -472,6 +472,23 @@ void CH_LED_switch(u8 ledch,u8 err,u8 onoff)
                 TM1639_LED_switch(LED_CH4_GREEN,0);
             }
             break;
+            
+        case 5:
+            if(err == 0) 
+            {
+                TM1639_LED_switch(LED_CH1_GREEN,onoff);
+                TM1639_LED_switch(LED_CH2_GREEN,onoff);
+                TM1639_LED_switch(LED_CH3_GREEN,onoff);
+                TM1639_LED_switch(LED_CH4_GREEN,onoff);
+            }
+            else
+            {
+                TM1639_LED_switch(LED_CH1_RED,onoff);
+                TM1639_LED_switch(LED_CH2_RED,onoff);
+                TM1639_LED_switch(LED_CH3_RED,onoff);
+                TM1639_LED_switch(LED_CH4_RED,onoff);
+            }
+            break;
         
         default:
             TM1639_LED_switch(LED_CH1_GREEN,0);

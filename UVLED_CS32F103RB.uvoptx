@@ -153,27 +153,27 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>KeyStaFlag</ItemText>
+          <ItemText>PHY_CH[0].Current,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>_menuset_cnt,0x0A</ItemText>
+          <ItemText>PHY_CH[1].Current,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>key,0x10</ItemText>
+          <ItemText>PHY_CH[2].Current,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>chtime,0x0A</ItemText>
+          <ItemText>PHY_CH[3].Current,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Low_Valtage,0x0A</ItemText>
+          <ItemText>time_allch,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
