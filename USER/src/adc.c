@@ -176,8 +176,7 @@ void DMA1_Channel1_IRQHandler(void)
                             if(PHY_CH[ich].undercurr_cnt >= 5)
                             {
                                 PHY_CH[ich].undercurr_cnt = 0;
-                                PHY_CH[ich].Error_Curr = 1;
-                                Bueezr_Config(200,0,0);
+                                PHY_CH[ich].Error_Curr = ERR_Ld2;
                                 PHY_Uvled_PwmSwitch(ich,0);
                                 PHY_CH[ich].Uvon = 0;
                             }
@@ -189,8 +188,7 @@ void DMA1_Channel1_IRQHandler(void)
                             if(PHY_CH[ich].overcurr_cnt >= 2)
                             {
                                 PHY_CH[ich].overcurr_cnt = 0;
-                                PHY_CH[ich].Error_Curr = 2;
-                                Bueezr_Config(200,0,0);
+                                PHY_CH[ich].Error_Curr = ERR_Ld1;
                                 PHY_Uvled_PwmSwitch(ich,0);
                                 PHY_CH[ich].Uvon = 0;
                             }
@@ -237,7 +235,7 @@ void uvled_current_error_handle(void)
     u8 ch = 0;
     for(ch = 0; ch < 4; ch++)
     {
-        if(PHY_CH[ch].Error_Curr == 2 && PHY_CH[ch].flag_error_curr == 0)
+        if(PHY_CH[ch].Error_Curr == ERR_Ld1 && PHY_CH[ch].flag_error_curr == 0) //overcurrent
         {
             PHY_CH[ch].flag_error_curr = 1;
             PHY_CH[ch].Uvledon.timer = 0;
@@ -245,8 +243,9 @@ void uvled_current_error_handle(void)
             TM1639_Display_UVLED_Char(DISPLAY_Ld1); //high
             PHY_Uvled_PwmSwitch(ch,0);
             CH_LED_switch(ch,PHY_CH[ch].Error_Curr,1);
+            Bueezr_Config(200,100,3);
         }
-        else if(PHY_CH[ch].Error_Curr == 1 && PHY_CH[ch].flag_error_curr == 0)
+        else if(PHY_CH[ch].Error_Curr == ERR_Ld2 && PHY_CH[ch].flag_error_curr == 0) //undercurrent
         {
             PHY_CH[ch].flag_error_curr = 1;
             PHY_CH[ch].Uvledon.timer = 0;
@@ -254,18 +253,16 @@ void uvled_current_error_handle(void)
             TM1639_Display_UVLED_Char(DISPLAY_Ld2); //low
             PHY_Uvled_PwmSwitch(ch,0);
             CH_LED_switch(ch,PHY_CH[ch].Error_Curr,1);
+            Bueezr_Config(200,100,3);
         }
     }
     if(run_ch > CHNUM) //ALL CH
     {
-        if(_check_uvled_current_err())
+        if(_check_uvled_current_err() && flag_allch_on == 1)
         {
-            for(ch = 0; ch < CHNUM; ch++)
-            {
-                PHY_CH[ch].Uvon = 0;
-                PHY_Uvled_PwmSwitch(ch,0);
-            }
-            CH_LED_switch(run_ch,0,0);
+            flag_allch_on = 0;
+            uvonch_last = 0;
+            PHY_UvLed_Off();
         }
     }
     if(_check_uvled_sta() == 0) _UVLED_CurrCheck_Disable();

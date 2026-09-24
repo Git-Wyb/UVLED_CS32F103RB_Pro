@@ -173,7 +173,7 @@
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>time_allch,0x0A</ItemText>
+          <ItemText>uvonch_last</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
@@ -203,7 +203,7 @@
         <Ww>
           <count>10</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Timer_Uvon,0x0A</ItemText>
+          <ItemText>sd</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>

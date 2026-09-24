@@ -7,6 +7,7 @@
 #include "UVLED.h"
 
 #define PRO_MODE 1
+#define TEST_MODE 0
 
 void Key_Handle(void);
 void Key_Up_Scan(void);
@@ -25,5 +26,8 @@ void PHY_Light_ModeLED(LED_ENUM mode);
 void _set_ch_temporary_param(u8 ch);
 void display_uvled_time(u16 time);
 void dispaly_uvled_real_time(u8 ch);
+void PHY_Light_ErrorLED(u8 ch, u8 onoff);
+void PHY_Light_UvonLED(u8 ch, u8 onoff);
+void PHY_CH_Error_Display(u8 ch);
 
 #endif

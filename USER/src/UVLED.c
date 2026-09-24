@@ -4,14 +4,6 @@
 #include "adc.h"
 #include "Application.h"
 
-void PHY_UvLed_Refresh(void)
-{
-    //CH_LED_switch(PHY_CH[0].Uvch, PHY_CH[0].Error, PHY_CH[0].Uvon);
-    //CH_LED_switch(PHY_CH[1].Uvch, PHY_CH[0].Error, PHY_CH[0].Uvon);
-    //CH_LED_switch(PHY_CH[2].Uvch, PHY_CH[0].Error, PHY_CH[0].Uvon);
-    //CH_LED_switch(PHY_CH[3].Uvch, PHY_CH[0].Error, PHY_CH[0].Uvon);
-}
-
 u8 _check_uvled_current_err(void)
 {
     u8 i = 0;
@@ -30,6 +22,11 @@ u8 _check_uvled_errLd123(void)
 {
     return (PHY_CH[0].Error_Connect==2 || PHY_CH[1].Error_Connect==2 || PHY_CH[2].Error_Connect==2 || PHY_CH[3].Error_Connect==2
            || _check_uvled_current_err());
+}
+
+u8 _check_poweron_allch_con_err(void)
+{
+    return (PHY_CH[0].Error_Connect==1 && PHY_CH[1].Error_Connect==1 && PHY_CH[2].Error_Connect==1 && PHY_CH[3].Error_Connect==1);
 }
 
 u8 _check_uvled_ch_error(u8 ch)
@@ -136,7 +133,6 @@ void PHY_UvLed_switch(u8 ch)
     {
         if(PHY_CH[channel].Ready == 1 && PHY_CH[channel].Uvon == 0 && PHY_CH[channel].Level != 0) //UV LED ON
         {
-            PHY_CH[channel].Uvon = 1;
             PHY_CH[channel].Ready = 0;
             PHY_CH[channel].Uvledon.timer = PHY_CH[channel].Time;
             PHY_CH[ci].Uvledon.flag_off = 0;
@@ -155,7 +151,6 @@ void PHY_UvLed_switch(u8 ch)
             PHY_CH[channel].Uvledon.flag_off = 0;
             PHY_Uvled_PwmSwitch(channel,0);
             CH_LED_switch(channel,0,0);
-            PHY_CH[channel].Uvon = 0;
         }
     }
     /* If all the channels are selected and turned on, then only the option of turning off all channels is available.
@@ -168,7 +163,7 @@ void PHY_UvLed_switch(u8 ch)
             {
                 if(PHY_CH[ci].Ready == 1 && PHY_CH[ci].Uvon == 0 && PHY_CH[channel].Level != 0)
                 {
-                    PHY_CH[ci].Uvon = 1;
+                    flag_allch_on = 1;
                     PHY_CH[ci].Ready = 0;
                     PHY_CH[ci].Uvledon.timer = PHY_CH[ci].Time;
                     PHY_CH[ci].Uvledon.flag_off = 0;
@@ -197,9 +192,10 @@ void PHY_UvLed_Off(void)
     { 
         PHY_CH[ch].Uvledon.timer = 0;
         PHY_CH[ch].Uvledon.flag_off = 0;
+        Time_uvch[ch].timer = 0;
+        time_allch = 0;
         PHY_Uvled_PwmSwitch(ch,0);
-        CH_LED_switch(ch,0,0);
-        PHY_CH[ch].Uvon = 0;
+        PHY_Light_UvonLED(ch,0);
     }
 }
 
@@ -223,23 +219,18 @@ void PHY_Uvled_PwmSwitch(u8 ch, u8 onoff)
     if(ch > CHNUM-1) return;
     if(onoff)
     {
-        if(PHY_CH[ch].Level == 100)
-        {
-            timer1_channel_gpiomode(ch,1,PHY_CH[ch].Level);
-        }
-        else
-        {
-            timer1_channel_gpiomode(ch,0,0);
-            tim_pwm_output_enable_ctrl(TIM1,ch,1);
-        }
+        timer1_channel_gpiomode(ch,0,0);
+        tim_pwm_output_enable_ctrl(TIM1,ch,1);
         PHY_CH[ch].undercurr_cnt = 0;
         PHY_CH[ch].overcurr_cnt = 0;
         _UVLED_CurrCheck_Enable();
+        PHY_CH[ch].Uvon = 1;
     }
     else
     {
         PHY_CH[ch].undercurr_cnt = 0;
         PHY_CH[ch].overcurr_cnt = 0;
+        PHY_CH[ch].Uvon = 0;
         timer1_channel_gpiomode(ch,1,0);
     }
 }
@@ -263,47 +254,8 @@ void PHY_UVLed_Connect_Check(void)
             PHY_CH[ch].Error_Connect = 2;
             CH_LED_switch(ch,PHY_CH[ch].Error_Connect,1);
             PHY_Uvled_PwmSwitch(ch,0);
-            PHY_CH[ch].Uvon = 0;
+            Bueezr_Config(200,100,3);
             if(ch == run_ch-1) TM1639_Display_UVLED_Char(DISPLAY_Ld3);
-        }
-    }
-}
-
-void PHY_UVLed_CheckIn(void)
-{
-    u8 ch = 0;
-    UVCh_Check.b0 = CH1_CHECK1_IN;
-    UVCh_Check.b1 = CH1_CHECK2_IN;
-    UVCh_Check.b2 = CH2_CHECK1_IN;
-    UVCh_Check.b3 = CH2_CHECK2_IN;
-    UVCh_Check.b4 = CH3_CHECK1_IN;
-    UVCh_Check.b5 = CH3_CHECK2_IN;
-    UVCh_Check.b6 = CH4_CHECK1_IN;
-    UVCh_Check.b7 = CH4_CHECK2_IN;
-    
-    for(ch = 0; ch < CHNUM; ch++)
-    {
-        if(((UVCh_Check.Flag >> (ch*2)) & CHECK_NONE) == CHECK_NONE)
-        {
-            if(PHY_CH[ch].Error_Connect == 0)
-            {
-                PHY_CH[ch].Error_Connect = 1;
-                PHY_CH[ch].Uvon = 0;
-                timer1_channel_gpiomode(ch,1,0);
-                PHY_CH[ch].Uvledon.timer = 0;
-                PHY_CH[ch].Uvledon.flag_off = 0;
-                CH_LED_switch(ch,PHY_CH[ch].Error_Connect,0);
-            }
-        }
-        else 
-        {
-            if(PHY_CH[ch].Error_Connect == 1)
-            {
-                PHY_CH[ch].Error_Connect = 0;
-                PHY_CH[ch].Uvon = 0;
-                CH_LED_switch(ch,0,0);
-                timer1_channel_gpiomode(ch,1,0);
-            }
         }
     }
 }
@@ -316,10 +268,11 @@ void PHY_UVLed_Select(u8 ch)
     {
         if(PHY_CH[ch-1].Error_Connect || PHY_CH[ch-1].Error_Curr)
         {
-            if(PHY_CH[ch-1].Error_Connect == 1)      TM1639_Display_UVLED_Char(DISPLAY_BLANK);
-            else if(PHY_CH[ch-1].Error_Connect == 2) TM1639_Display_UVLED_Char(DISPLAY_Ld3);
-            else if(PHY_CH[ch-1].Error_Curr == 1)    TM1639_Display_UVLED_Char(DISPLAY_Ld2);
-            else if(PHY_CH[ch-1].Error_Curr == 2)    TM1639_Display_UVLED_Char(DISPLAY_Ld1);
+            //if(PHY_CH[ch-1].Error_Connect == 1)      TM1639_Display_UVLED_Char(DISPLAY_BLANK);
+            //else if(PHY_CH[ch-1].Error_Connect == 2) TM1639_Display_UVLED_Char(DISPLAY_Ld3);
+            //else if(PHY_CH[ch-1].Error_Curr == ERR_Ld2)    TM1639_Display_UVLED_Char(DISPLAY_Ld2);
+            //else if(PHY_CH[ch-1].Error_Curr == ERR_Ld1)    TM1639_Display_UVLED_Char(DISPLAY_Ld1);
+            TM1639_Display_UVLED_Char((DISPLAY_ENUM)(ch+15));
             PHY_CH[0].Option = 0;
             PHY_CH[1].Option = 0;
             PHY_CH[2].Option = 0;
@@ -381,8 +334,8 @@ void PHY_UVLed_Select(u8 ch)
                 }
                 else if(PHY_CH[ci].Error_Curr)
                 {
-                    if(PHY_CH[ci].Error_Curr == 1)        TM1639_Display_UVLED_Char(DISPLAY_Ld2);
-                    else if(PHY_CH[ci].Error_Curr == 2)   TM1639_Display_UVLED_Char(DISPLAY_Ld1);
+                    if(PHY_CH[ci].Error_Curr == ERR_Ld2)        TM1639_Display_UVLED_Char(DISPLAY_Ld2);
+                    else if(PHY_CH[ci].Error_Curr == ERR_Ld1)   TM1639_Display_UVLED_Char(DISPLAY_Ld1);
                     PHY_CH[0].Option = 0;
                     PHY_CH[1].Option = 0;
                     PHY_CH[2].Option = 0;
@@ -390,7 +343,7 @@ void PHY_UVLed_Select(u8 ch)
                     return;
                 }
             }
-            if(_check_uvled_connect_err() == 0x0F) TM1639_Display_UVLED_Char(DISPLAY_BLANK);
+            if(_check_uvled_connect_err() == 0x0F) TM1639_Display_UVLED_Char(DISPLAY_Ld3);
             else TM1639_Display_UVLED_Char(DISPLAY_ALL);
             break;
         
@@ -413,4 +366,3 @@ void _uvled_ch_last(u8 ch)
         else PHY_CH[i].Option = 0;
     }
 }
-

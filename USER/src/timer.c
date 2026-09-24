@@ -24,8 +24,6 @@ u16 pwm100k_buf[101] = {0, 7,   14, 22, 29, 36, 43, 50, 58, 65, 72,
                            583,590,598,605,612,619,626,634,641,648,
                            655,662,670,677,684,691,698,706,713,720};
 
-u16 level_buff[100] = {0,144,166,180,194,208,223};
-
 //75K
 u16 pwm75k_buf[101] = {0, 10,  19, 29, 38, 48, 58, 67, 77, 86, 96,
                           106,115,125,134,144,154,163,173,182,192,
@@ -37,6 +35,18 @@ u16 pwm75k_buf[101] = {0, 10,  19, 29, 38, 48, 58, 67, 77, 86, 96,
                           682,691,701,710,720,730,739,749,758,768,
                           778,787,797,806,816,826,835,845,854,864,
                           874,883,893,902,912,922,931,941,950,960};
+
+u16 Freq50k_level_buff[101] = {0,72,  85,  97,  110, 123, 135, 148, 161, 173, 186,
+                                 199, 211, 224, 237, 249, 262, 275, 287, 300, 313,
+                                 325, 338, 351, 363, 376, 389, 401, 414, 427, 439,
+                                 452, 465, 478, 490, 503, 516, 528, 541, 554, 566,
+                                 579, 592, 604, 617, 630, 642, 655, 668, 680, 693,
+                                 706, 718, 731, 744, 756, 769, 782, 794, 807, 820,
+                                 832, 845, 858, 870, 883, 896, 908, 921, 934, 946,
+                                 959, 972, 984, 997, 1010,1022,1035,1048,1060,1073,
+                                 1086,1098,1111,1124,1136,1149,1162,1174,1187,1200,
+                                 1212,1225,1238,1250,1263,1276,1289,1301,1314,1327};
+                                 
 
 void Init_Timer3(void)
 {
@@ -77,6 +87,7 @@ void TIM3_IRQHandler(void)
         if(time_keyscan) time_keyscan--;
         if(time_adc_conv) time_adc_conv--;
         if(flag_adc_en && time_adc_wait) time_adc_wait--;
+
         time_100ms++;
         if(time_100ms >= 100)
         {
@@ -136,12 +147,14 @@ void Init_Timer2(void)
 
 void Buzzer_Switch(enable_state_t sta)
 {
-    if(sta == ENABLE) 
+    if(sta == ENABLE && flag_buzzer_sw == 0) 
     {
+        flag_buzzer_sw = 1;
         Init_Timer2();
     }
-    else
+    else if(sta == DISABLE && flag_buzzer_sw == 1)
     {
+        flag_buzzer_sw = 0;
         tim_chcc_enable_ctrl(TIM2,TIM_CHANNEL_3,DISABLE);
         __TIM_FUNC_DISABLE(TIM2, CH_OUTPUT);
         __TIM_DISABLE(TIM2);
@@ -154,6 +167,9 @@ void Bueezr_Config(u16 ontime, u16 offtime, u8 num)
 {
     if(Set_Mode.buzzer_sw.setval)
     {
+        Buzzer_Set.time_on = ontime;
+        Buzzer_Set.time_off = offtime;
+        Buzzer_Set.number = num;
         time_buzzer_on = ontime;
         time_buzzer_off = offtime;
         buzzer_num = num;
@@ -162,18 +178,27 @@ void Bueezr_Config(u16 ontime, u16 offtime, u8 num)
 
 void _Bueezr_Handle(void)
 {
-    if(time_buzzer_on) time_buzzer_on--;
-    else if(time_buzzer_off) time_buzzer_off--;
-    
-    if(time_buzzer_on && flag_buzzer_sw == 0) 
+    if(time_buzzer_on)
     {
-        flag_buzzer_sw = 1;
+        time_buzzer_on--;
         Buzzer_Switch(ENABLE);
+        if(time_buzzer_on == 0)
+        {
+            Buzzer_Switch(DISABLE);
+            if(buzzer_num) buzzer_num--;
+        }
     }
-    else if(time_buzzer_on == 0 && flag_buzzer_sw == 1)
+    else if(time_buzzer_off)
     {
-        flag_buzzer_sw = 0;
-        Buzzer_Switch(DISABLE);
+        time_buzzer_off--;
+        if(time_buzzer_off == 0)
+        {
+            if(buzzer_num)
+            {
+                time_buzzer_on = Buzzer_Set.time_on;
+                time_buzzer_off = Buzzer_Set.time_off;
+            }
+        }
     }
 }
 
@@ -356,15 +381,15 @@ void UV_LED_PwmSet(u8 channel, u8 pwm)
         PHY_CH[TIM_CHANNEL_2].Level = pwm;
         PHY_CH[TIM_CHANNEL_3].Level = pwm;
         PHY_CH[TIM_CHANNEL_4].Level = pwm;
-        TIM1->CHXCCVAL[TIM_CHANNEL_1] = pwm100k_buf[pwm] * 2;
-        TIM1->CHXCCVAL[TIM_CHANNEL_2] = pwm100k_buf[pwm] * 2;
-        TIM1->CHXCCVAL[TIM_CHANNEL_3] = pwm100k_buf[pwm] * 2;
-        TIM1->CHXCCVAL[TIM_CHANNEL_4] = pwm100k_buf[pwm] * 2;
+        TIM1->CHXCCVAL[TIM_CHANNEL_1] = Freq50k_level_buff[pwm];
+        TIM1->CHXCCVAL[TIM_CHANNEL_2] = Freq50k_level_buff[pwm];
+        TIM1->CHXCCVAL[TIM_CHANNEL_3] = Freq50k_level_buff[pwm];
+        TIM1->CHXCCVAL[TIM_CHANNEL_4] = Freq50k_level_buff[pwm];
     }
     else
     {
         PHY_CH[channel].Level = pwm;
-        TIM1->CHXCCVAL[channel] = pwm100k_buf[pwm] * 2;
+        TIM1->CHXCCVAL[channel] = Freq50k_level_buff[pwm];
         SEL_CH.Level = pwm;
     }
 }

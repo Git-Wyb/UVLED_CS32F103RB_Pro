@@ -17,10 +17,10 @@ typedef float f32;
 #define CHNUM 4
 #define TIME_COUNT_MAX 9990 //9990*100=999s
 
-#define CHECK0      0x00
-#define CHECK1      0x01
-#define CHECK2      0x02
-#define CHECK_NONE  0x03
+#define CHECK_H_1VH  0x01
+#define CHECK_H_2VH  0x02
+#define CHECK_H_4VH  0x00
+#define CHECK_NONE   0x03
 
 typedef enum
 {
@@ -30,6 +30,12 @@ typedef enum
     HOUR_MODE,
     MENU_MODE_SET
 }MODE;
+
+typedef struct{
+    u16 time_on;
+    u16 time_off;
+    u8  number;
+}BuzStu;
 
 typedef struct{
     u8 setval;
@@ -107,12 +113,12 @@ typedef struct{
 
 typedef enum{
     NO_ERROR = 0,
-    Err_Eo1 = 12,
-    Err_FE2 = 32,
-    Err_Ld1 = 41,
-    Err_Ld2 = 42,
-    Err_Ld3 = 43,
-    Err_Ld4 = 44
+    ERR_Ld1 = 1,
+    ERR_Ld2 = 2,
+    ERR_Ld3 = 3,
+    ERR_Ld4 = 4,
+    ERR_Eo1 = 12,
+    ERR_FE2 = 32,
 }ERROR_CODE;
 
 
@@ -128,6 +134,7 @@ typedef enum{
 #define flag_keydown_long  Flag1.b0
 #define flag_keybk_long    Flag1.b1
 #define flag_keyfw_long    Flag1.b2
+#define flag_allch_on      Flag1.b3
 
 extern BaseFlagStu Flag0;
 extern BaseFlagStu Flag1;
@@ -148,6 +155,7 @@ extern u16 time_adc_conv;
 extern u16 uvled_time;
 extern BaseFlagStu UVCh_Check;
 extern Proj_Stu Set_Mode;
+extern Proj_Stu Initial_ModeSet;
 extern u16 time_adc_wait;
 extern u8 time_keysta_del;
 extern CH_STU SEL_CH;
@@ -156,6 +164,8 @@ extern NUMSTU Time_stu;
 extern CH_UVON Time_uvch[CHNUM];
 extern u16 time_allch;
 extern u8 uvonch_last;
+extern BuzStu Buzzer_Set;
+extern u16 time_display_cnt;
 
 void Init_uvch(void);
 void Initial_poweron_state(void);

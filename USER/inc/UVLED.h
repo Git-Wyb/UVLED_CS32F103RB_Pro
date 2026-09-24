@@ -28,5 +28,6 @@ u8 _check_uvled_current_err(void);
 u8 _check_uvled_ch_error(u8 ch);
 u8 _check_uvled_errLd123(void);
 u8 _check_uvled_connect_Ld3(void);
+u8 _check_poweron_allch_con_err(void);
 
 #endif
