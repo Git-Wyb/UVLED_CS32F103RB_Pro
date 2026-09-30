@@ -13,26 +13,30 @@
 #include "cs32f10x_misc.h"
 #include "TM1639.h"
 #include "UVLED.h"
-
+#include "string.h"
+void Test_Mode_Handle(void);
 void Send_Logo(void);
 
 u8 pcnt = 0;
+u8 red = 0xAA;
+u8 wbuf[10] = {11,12,13,14,15,16,17,18,19,20};
+u8 rbuf[10] = {0};
 void test_chuvled_out(void);
 int main(void)
 {
+    Init_FWDT();
     Init_Gpio();
     Init_Timer1(); //f=50k
     Init_Timer3();
-    //Init_Adc();
-    Set_Mode.buzzer_sw.setval = 1;
-    Bueezr_Config(200,0,0);
-    //Init_Usart1(9600);
+    Init_Usart1(9600);
     Init_TM1639();
+    SoftI2C_Init();
+    Test_Mode_Handle();
     Initial_poweron_state();
     //while(1);
-    //test_chuvled_out();
     while(1)
     {
+        FWDT_Clear();
         if(time_keyscan == 0)
         {
             time_keyscan = 20;
@@ -47,30 +51,255 @@ int main(void)
     }
 }
 
-
 void Send_Logo(void)
 {
     if(flag_rx_done == 1)
     {
         flag_rx_done = 0;
-        printf("\r\n2026.09.23,Soft Version V0.03\r\n");
-        //printf("ADC Cover_Value    = %d(mV)\r\n",CalVal.Cover_Value);
+        printf("\r\n2026.09.30,Soft Version V0.04\r\n");
     }
 }
 
+void display_test_mode(u8 set);
+void test_setp_set(void);
+void test_232(void);
+void test_ext_trg(void);
+void test_eeprom(void);
+u8 test_step = 0;
+u8 testcnt = 0;
 u8 test_on = 0;
-void test_chuvled_out(void)
+u8 test_232_txdata[] = "(Test 232)";
+u8 test_eeprom_data[10] = {1,2,3,4,5,6,7,8,9,10};
+u8 read_eeprom_data[10] = {0};
+
+void Test_Mode_Handle(void)
 {
-    TM1639_Display_UVLED_Char(DISPLAY_ALL);
-    while(1)
+    TM1639_Read_Key();
+    if(KeySta.Set == 1 && KeySta.Bk == 1) 
     {
+        flag_test_mode = 1;
+        TM1639_Display_UVLED_Char(DISPLAY_BLANK);
+    }
+    else flag_test_mode = 0;
+    
+    while(flag_test_mode)
+    {
+        FWDT_Clear();
         if(time_keyscan == 0)
         {
             time_keyscan = 20;
             TM1639_Read_Key();
-            Key_Uvon_Scan();
-            Key_Mode_Scan();
+            Key_Up_Scan();
+            Key_Down_Scan();
+            Key_Set_Scan();
+            //Key_Bk_Scan();
+            //Key_Fw_Scan();
+            //Key_Uvon_Scan();
+            //Key_Ch_Scan();
+            //Key_Mode_Scan();
+            test_setp_set();
         }
+        
+        switch(test_step)
+        {
+            case 1:
+                test_ext_trg();
+            break;
+            
+            case 2:
+                test_232();
+                break;
+            
+            case 3:
+                test_eeprom();
+                break;
+            
+            case 4:
+                test_chuvled_out();
+                break;
+            
+            default:
+                break;
+        }
+    }
+}
+
+void test_ext_trg(void)
+{
+    TM1639_Display_UVLED_Char(DISPLAY_on);
+    while(1)
+    {
+        FWDT_Clear();
+        if(time_keyscan == 0)
+        {
+            time_keyscan = 20;
+            TM1639_Read_Key();
+            Key_Set_Scan();
+             if(KeyStaFlag.Set)
+            {
+                _clear_KeyStaFlag();
+                display_test_mode(testcnt);
+                pcnt = 0;
+                test_on = 0;
+                test_step = 0;
+                flag_test_232 = 0;
+                return;
+            }
+        }
+        EXT_TRG_Scan();
+    }
+}
+
+void test_eeprom(void)
+{
+    TM1639_Display_UVLED_Char(DISPLAY_on);
+    ZD24C08A_PageWrite(0,test_eeprom_data,10);
+    wait_ms(100);
+    ZD24C08A_Read(0,read_eeprom_data,10);
+    wait_ms(300);
+    if(memcmp(read_eeprom_data,test_eeprom_data,10) == 0)
+    {
+        TM1639_Display_UVLED_Char(DISPLAY_oPL);
+    }
+    else TM1639_Display_UVLED_Char(DISPLAY_Eo1);
+    while(1)
+    {
+        FWDT_Clear();
+        if(time_keyscan == 0)
+        {
+            time_keyscan = 20;
+            TM1639_Read_Key();
+            Key_Set_Scan();
+            if(KeyStaFlag.Set)
+            {
+                _clear_KeyStaFlag();
+                display_test_mode(testcnt);
+                pcnt = 0;
+                test_on = 0;
+                test_step = 0;
+                flag_test_232 = 0;
+                return;
+            }
+        }
+    }
+}
+
+void test_setp_set(void)
+{
+    if(KeyStaFlag.Up)
+    {
+        _clear_KeyStaFlag();
+        testcnt++;
+        if(testcnt > 4) testcnt = 1;
+        display_test_mode(testcnt);
+        
+    }
+    else if(KeyStaFlag.Down)
+    {
+        _clear_KeyStaFlag();
+        if(testcnt) testcnt--;
+        display_test_mode(testcnt);
+    }
+    else if(KeyStaFlag.Set)
+    {
+        _clear_KeyStaFlag();
+        test_step = testcnt;
+    }
+}
+
+void display_test_mode(u8 set)
+{
+    switch(set)
+    {
+        case 1:
+            TM1639_Display_UVLED_Char(DISPLAY_Ein);
+            break;
+        
+        case 2:
+            TM1639_Display_UVLED_Char(DISPLAY_232);
+            break;
+        
+        case 3:
+            TM1639_Display_UVLED_Char(DISPLAY_FE2);
+            break;
+        
+        case 4:
+            TM1639_Display_UVLED_Char(DISPLAY_ALL);
+            break;
+    }
+}
+
+void test_232(void)
+{
+    TM1639_Display_UVLED_Char(DISPLAY_on);
+    usart1_send_data(test_232_txdata,10);
+    time_keyscan = 500;
+    while(1)
+    {
+        FWDT_Clear();
+        if(time_keyscan == 0)
+        {
+            time_keyscan = 20;
+            TM1639_Read_Key();
+            Key_Set_Scan();
+            if(KeyStaFlag.Set)
+            {
+                _clear_KeyStaFlag();
+                display_test_mode(testcnt);
+                pcnt = 0;
+                test_on = 0;
+                test_step = 0;
+                flag_test_232 = 0;
+                return;
+            }    
+        }
+        
+        if(time_keyscan == 0)
+        {
+            flag_test_232 = 0;
+            if(strncmp((const char*)test_232_txdata,(const char*)test232_rxbuf,10) == 0)
+            {
+                TM1639_Display_UVLED_Char(DISPLAY_oPL);
+            }
+            else
+            {
+                TM1639_Display_UVLED_Char(DISPLAY_Eo1);
+            }
+        }
+    }
+}
+
+void test_chuvled_out(void)
+{
+    TM1639_Display_UVLED_Char(DISPLAY_on);
+    while(1)
+    {
+        FWDT_Clear();
+        if(time_keyscan == 0)
+        {
+            time_keyscan = 20;
+            TM1639_Read_Key();
+            Key_Set_Scan();
+            Key_Uvon_Scan();
+            if(KeyStaFlag.Set)
+            {
+                _clear_KeyStaFlag();
+                display_test_mode(testcnt);
+                pcnt = 0;
+                test_on = 0;
+                test_step = 0;
+                PHY_Uvled_PwmSwitch(0,0);
+                CH_LED_switch(0,0,0);
+                PHY_Uvled_PwmSwitch(1,0);
+                CH_LED_switch(1,0,0);
+                PHY_Uvled_PwmSwitch(2,0);
+                CH_LED_switch(2,0,0);
+                PHY_Uvled_PwmSwitch(3,0);
+                CH_LED_switch(3,0,0);
+                return;
+            }
+        }
+        
         if(time_adc_conv == 0 && test_on == 1)
         {
             time_adc_conv = 2000;
@@ -108,13 +337,13 @@ void test_chuvled_out(void)
                 PHY_Uvled_PwmSwitch(3,0);
                 CH_LED_switch(3,0,0);
             }
-        }
+        }/*
         if(KeyStaFlag.Mode)
         {
             _clear_KeyStaFlag();
             run_ch = 1;
             PHY_UVLed_Select(run_ch);
             return;
-        }
+        }*/
     }
 }

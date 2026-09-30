@@ -4,6 +4,7 @@
 #include "cs32f10x_gpio.h"
 #include "cs32f10x_rcu.h"
 #include "cs32f10x_misc.h"
+#include "cs32f10x_fwdt.h"
 #include "TM1639.h"
 #include "Application.h"
 #include "gpio.h"
@@ -28,6 +29,7 @@ u16 time_adc_conv = 50;
 u16 uvled_time = 0;
 BaseFlagStu UVCh_Check = {0};
 Proj_Stu Set_Mode = {0};
+Proj_Stu Set_Mode_Cache = {0};
 u16 time_adc_wait = 0;
 u8 time_keysta_del = 0;
 u8 run_ch = 1;
@@ -43,7 +45,7 @@ NUMSTU display_soft_version = { //Ver0.01
     .point0 = 1,
     .decde = 0,
     .point1 = 0,
-    .unit = 3,
+    .unit = 4,
     .point2 = 0
 };
 
@@ -62,20 +64,30 @@ void RCC_Configuration(void)
     //SystemInit();
 }
 
+void Init_FWDT(void) //?????????
+{
+    fwdt_prescaler_set(32);
+    fwdt_reload_counter();
+    fwdt_enable();
+}
+
+void FWDT_Clear(void)
+{
+    fwdt_reload_counter();
+}
+
 void Init_uvch(void)
 {
     PHY_CH[0].Uvch = 1;
     PHY_CH[1].Uvch = 2;
     PHY_CH[2].Uvch = 3;
     PHY_CH[3].Uvch = 4;
-    //SEL_CH.Uvch = 1;
-    //run_ch = 1;
-    //PHY_CH[0].Option = 1;
 }
 
 void Initial_poweron_state(void)
 {
     Set_Mode = Initial_ModeSet;
+    Set_Mode_Cache = Initial_ModeSet;
     Init_uvch();
     TM1639_Display_UVLED_Char(DISPLAY_888);
     PHY_Light_ModeLED(LED_ALL_ON);
@@ -86,7 +98,7 @@ void Initial_poweron_state(void)
     TM1639_DisplayUVtime(display_soft_version);
     wait_ms(1000);
     Initial_UVLed_CheckIn();
-
+    PHY_Light_ModeLED(LED_RUN_MODE);
     //PHY_UVLed_Select(run_ch);
 }
 

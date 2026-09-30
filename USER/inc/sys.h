@@ -135,6 +135,8 @@ typedef enum{
 #define flag_keybk_long    Flag1.b1
 #define flag_keyfw_long    Flag1.b2
 #define flag_allch_on      Flag1.b3
+#define flag_test_mode     Flag1.b4
+#define flag_test_232      Flag1.b5
 
 extern BaseFlagStu Flag0;
 extern BaseFlagStu Flag1;
@@ -155,6 +157,7 @@ extern u16 time_adc_conv;
 extern u16 uvled_time;
 extern BaseFlagStu UVCh_Check;
 extern Proj_Stu Set_Mode;
+extern Proj_Stu Set_Mode_Cache;
 extern Proj_Stu Initial_ModeSet;
 extern u16 time_adc_wait;
 extern u8 time_keysta_del;
@@ -166,6 +169,8 @@ extern u16 time_allch;
 extern u8 uvonch_last;
 extern BuzStu Buzzer_Set;
 extern u16 time_display_cnt;
+void Init_FWDT(void);
+void FWDT_Clear(void);
 
 void Init_uvch(void);
 void Initial_poweron_state(void);

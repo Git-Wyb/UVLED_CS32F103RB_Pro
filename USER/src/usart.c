@@ -7,6 +7,7 @@
 
 u8 rx_buf[10] = {0};
 u8 rx_index = 0;
+u8 test232_rxbuf[10] = {0};
 
 /*
 PB6 -> USART1_TX
@@ -39,8 +40,8 @@ void Init_Usart1(u32 baud)
     
      /* Enable the USART Interrupt */
     nvic_config_struct.nvic_irqchannel = IRQn_USART1;
-    nvic_config_struct.nvic_irq_pre_priority = 4;
-    nvic_config_struct.nvic_irq_sub_priority = 0;
+    nvic_config_struct.nvic_irq_pre_priority = 1;
+    nvic_config_struct.nvic_irq_sub_priority = 1;
     nvic_config_struct.nvic_irq_enable = ENABLE;
     nvic_init(&nvic_config_struct);
     __USART_INTR_ENABLE(USART1, RXNE); // Enable the USART Receive interrupt
@@ -50,6 +51,7 @@ void Init_Usart1(u32 baud)
 }
 
 u8 rxdata = 0;
+u8 it = 0;
 void USART1_IRQHandler(void)
 {
     /* USART Receiver*/
@@ -67,6 +69,11 @@ void USART1_IRQHandler(void)
                 {
                     flag_rx_done = 1;
                 }
+                else if(rx_buf[1] == 'T' && rx_buf[9] == ')')
+                {
+                    flag_test_232 = 1;
+                    for(it=0; it<10; it++) test232_rxbuf[it] = rx_buf[it];
+                }
                 rx_index = 0;
                 rx_buf[2] = 0;
                 rx_buf[0] = 0;
@@ -76,7 +83,6 @@ void USART1_IRQHandler(void)
     }        
 }
 
-
 int fputc(int ch, FILE *f)
 {
   /* Place your implementation of fputc here */
@@ -84,4 +90,14 @@ int fputc(int ch, FILE *f)
     __USART_DATA_SEND(USART1, (uint8_t)ch);
     while(__USART_FLAG_STATUS_GET(USART1, TXE) == RESET);
     return ch;
+}
+
+void usart1_send_data(u8 *buf,u8 len)
+{
+    u8 i = 0;
+    for(i=0; i<len; i++)
+    {
+        __USART_DATA_SEND(USART1, buf[i]);
+        while(__USART_FLAG_STATUS_GET(USART1, TXE) == RESET);
+    }
 }

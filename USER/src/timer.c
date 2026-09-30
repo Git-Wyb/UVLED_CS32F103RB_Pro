@@ -103,7 +103,7 @@ void wait_ms(u16 ms)
     time_ms = ms;
     while(time_ms)
     {
-        ;
+        FWDT_Clear();
     }
 }
 
