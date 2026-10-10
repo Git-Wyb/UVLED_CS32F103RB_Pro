@@ -39,13 +39,15 @@ u16 time_allch = 0;
 u8 uvonch_last = 0;
 BuzStu Buzzer_Set = {0};
 u16 time_display_cnt = 0;
+EXTINSTU ExtIn_Now = {0};
+EXTINSTU ExtIn_Flag = {0};
 
-NUMSTU display_soft_version = { //Ver0.01
+NUMSTU display_soft_version = { //Ver0.05
     .hundreds = 0,
     .point0 = 1,
     .decde = 0,
     .point1 = 0,
-    .unit = 4,
+    .unit = 5,
     .point2 = 0
 };
 

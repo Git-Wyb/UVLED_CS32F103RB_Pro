@@ -115,8 +115,37 @@ void uvled_ready_check(void)
         if(PHY_CH[ch].Option && PHY_CH[ch].Error_Connect == 0 && PHY_CH[ch].Error_Curr == 0 && PHY_CH[ch].Uvon == 0)
         {
             if(PHY_CH[ch].Level) PHY_CH[ch].Ready = 1;
+            else PHY_CH[ch].Ready = 0;
         }
         else PHY_CH[ch].Ready = 0;
+        
+        ext_ch_ready_output(ch,PHY_CH[ch].Ready);
+    }
+    
+    EXT_UVON_OUT(!_check_uvled_sta());
+    
+    EXT_ERROR_OUT(!_check_uvled_error());
+}
+
+void ext_ch_ready_output(u8 ch,u8 sta)
+{
+    switch(ch)
+    {
+        case 0:
+            EXT_RYD1_OUT(!sta);
+            break;
+        
+        case 1:
+            EXT_RYD2_OUT(!sta);
+            break;
+        
+        case 2:
+            EXT_RYD3_OUT(!sta);
+            break;
+        
+        case 3:
+            EXT_RYD4_OUT(!sta);
+            break;
     }
 }
 

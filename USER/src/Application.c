@@ -48,6 +48,12 @@ u8 _keydown_cnt = 0;
 u8 _keybk_cnt = 0;
 u8 _keyfw_cnt = 0;
 u8 fbuff[11] = {0,1,2,3,5,10,15,20,50,100};
+u8 trgcnt = 0;
+u8 emgcnt = 0;
+u8 trg1cnt = 0;
+u8 trg2cnt = 0;
+u8 trg3cnt = 0;
+u8 trg4cnt = 0;
 
 void Key_Handle(void)
 {
@@ -65,6 +71,7 @@ void Key_Handle(void)
 #endif
     dispaly_uvled_real_time(run_ch);
     PHY_CH_Error_Display(run_ch-1);
+    EXT_Input_Scan();
 }
 
 #if (PRO_MODE == 0)
@@ -1293,17 +1300,152 @@ void PHY_CH_Error_Display(u8 ch)
     else time_display_cnt = 0;
 }
 
-u8 trgcnt = 0;
-u8 trgflag = 0;
-void TRG_Scan(void)
+void PHY_Ext_Uvled_Handle(void)
 {
-    if(EXT_TRG_IN == 0 && trgflag == 0)
+    
+}
+
+void EXT_Input_Scan(void)
+{
+    Ext_Trg_Scan(); /* All channels irradiation input. */
+    Ext_Emg_Scan(); /* emergency stop input. */
+    Ext_Trg1_Scan();/* CH1 Individual irradiation input. */
+    Ext_Trg2_Scan();/* CH2 Individual irradiation input. */
+    Ext_Trg3_Scan();/* CH3 Individual irradiation input. */
+    Ext_Trg4_Scan();/* CH4 Individual irradiation input. */
+}
+    
+void Ext_Trg_Scan(void)
+{
+    if(EXT_TRG_IN == 0 && ExtIn_Now.Trg == 0)
     {
         trgcnt++;
         if(trgcnt > CNTMAX)
         {
             trgcnt = 0;
-            trgflag = 1;
+            ExtIn_Now.Trg = 1;
+            run_ch = 5;
+            PHY_UvLed_switch(run_ch);
+        }
+    }else 
+    {
+        trgcnt = 0;
+        if(EXT_TRG_IN == 1) 
+        {
+            ExtIn_Now.Trg = 0;
+        }
+    }
+}
+
+void Ext_Emg_Scan(void)
+{
+    if(EXT_EMG_IN == 0 && ExtIn_Now.Emg == 0)
+    {
+        emgcnt++;
+        if(emgcnt > CNTMAX)
+        {
+            emgcnt = 0;
+            ExtIn_Now.Emg = 1;
+        }
+    }else 
+    {
+        emgcnt = 0;
+        if(EXT_EMG_IN == 1) 
+        {
+            ExtIn_Now.Emg = 0;
+        }
+    }
+}
+
+void Ext_Trg1_Scan(void)
+{
+    if(EXT_TRG1_IN == 0 && ExtIn_Now.Trg1 == 0)
+    {
+        trg1cnt++;
+        if(trg1cnt > CNTMAX)
+        {
+            trg1cnt = 0;
+            ExtIn_Now.Trg1 = 1;
+        }
+    }else 
+    {
+        trg1cnt = 0;
+        if(EXT_TRG1_IN == 1) 
+        {
+            ExtIn_Now.Trg1 = 0;
+        }
+    }
+}
+
+void Ext_Trg2_Scan(void)
+{
+    if(EXT_TRG2_IN == 0 && ExtIn_Now.Trg2 == 0)
+    {
+        trg2cnt++;
+        if(trg2cnt > CNTMAX)
+        {
+            trg2cnt = 0;
+            ExtIn_Now.Trg2 = 1;
+        }
+    }else 
+    {
+        trg2cnt = 0;
+        if(EXT_TRG2_IN == 1) 
+        {
+            ExtIn_Now.Trg2 = 0;
+        }
+    }
+}
+
+void Ext_Trg3_Scan(void)
+{
+    if(EXT_TRG3_IN == 0 && ExtIn_Now.Trg3 == 0)
+    {
+        trg3cnt++;
+        if(trg3cnt > CNTMAX)
+        {
+            trg3cnt = 0;
+            ExtIn_Now.Trg3 = 1;
+        }
+    }else 
+    {
+        trg3cnt = 0;
+        if(EXT_TRG3_IN == 1) 
+        {
+            ExtIn_Now.Trg3 = 0;
+        }
+    }
+}
+
+void Ext_Trg4_Scan(void)
+{
+    if(EXT_TRG4_IN == 0 && ExtIn_Now.Trg4 == 0)
+    {
+        trg4cnt++;
+        if(trg4cnt > CNTMAX)
+        {
+            trg4cnt = 0;
+            ExtIn_Now.Trg4 = 1;
+        }
+    }else 
+    {
+        trg4cnt = 0;
+        if(EXT_TRG4_IN == 1) 
+        {
+            ExtIn_Now.Trg4 = 0;
+        }
+    }
+}
+
+void TRG_Scan(void)
+{
+    if(EXT_TRG_IN == 0 && ExtIn_Flag.Trg == 0)
+    {
+        trgcnt++;
+        if(trgcnt > CNTMAX)
+        {
+            trgcnt = 0;
+            ExtIn_Flag.Trg = 1;
             TM1639_DisplayNum(1);
             EXT_UVON_OUT(0);
         }
@@ -1312,23 +1454,21 @@ void TRG_Scan(void)
         trgcnt = 0;
         if(EXT_TRG_IN == 1) 
         {
-            trgflag = 0;
+            ExtIn_Flag.Trg = 0;
             EXT_UVON_OUT(1);
         }
     }
 }
 
-u8 emgcnt = 0;
-u8 emgflag = 0;
 void EMG_Scan(void)
 {
-    if(EXT_EMG_IN == 0 && emgflag == 0)
+    if(EXT_EMG_IN == 0 && ExtIn_Flag.Emg == 0)
     {
         emgcnt++;
         if(emgcnt > CNTMAX)
         {
             emgcnt = 0;
-            emgflag = 1;
+            ExtIn_Flag.Emg = 1;
             TM1639_DisplayNum(2);
             EXT_ERROR_OUT(0);
         }
@@ -1337,23 +1477,21 @@ void EMG_Scan(void)
         emgcnt = 0;
         if(EXT_EMG_IN == 1) 
         {
-            emgflag = 0;
+            ExtIn_Flag.Emg = 0;
             EXT_ERROR_OUT(1);
         }
     }
 }
 
-u8 trg1cnt = 0;
-u8 trg1flag = 0;
 void TRG1_Scan(void)
 {
-    if(EXT_TRG1_IN == 0 && trg1flag == 0)
+    if(EXT_TRG1_IN == 0 && ExtIn_Flag.Trg1 == 0)
     {
         trg1cnt++;
         if(trg1cnt > CNTMAX)
         {
             trg1cnt = 0;
-            trg1flag = 1;
+            ExtIn_Flag.Trg1 = 1;
             TM1639_DisplayNum(3);
             EXT_RYD1_OUT(0);
         }
@@ -1362,23 +1500,21 @@ void TRG1_Scan(void)
         trg1cnt = 0;
         if(EXT_TRG1_IN == 1) 
         {
-            trg1flag = 0;
+            ExtIn_Flag.Trg1 = 0;
             EXT_RYD1_OUT(1);
         }
     }
 }
 
-u8 trg2cnt = 0;
-u8 trg2flag = 0;
 void TRG2_Scan(void)
 {
-    if(EXT_TRG2_IN == 0 && trg2flag == 0)
+    if(EXT_TRG2_IN == 0 && ExtIn_Flag.Trg2 == 0)
     {
         trg2cnt++;
         if(trg2cnt > CNTMAX)
         {
             trg2cnt = 0;
-            trg2flag = 1;
+            ExtIn_Flag.Trg2 = 1;
             TM1639_DisplayNum(4);
             EXT_RYD2_OUT(0);
         }
@@ -1387,23 +1523,21 @@ void TRG2_Scan(void)
         trg2cnt = 0;
         if(EXT_TRG2_IN == 1) 
         {
-            trg2flag = 0;
+            ExtIn_Flag.Trg2 = 0;
             EXT_RYD2_OUT(1);
         }
     }
 }
 
-u8 trg3cnt = 0;
-u8 trg3flag = 0;
 void TRG3_Scan(void)
 {
-    if(EXT_TRG3_IN == 0 && trg3flag == 0)
+    if(EXT_TRG3_IN == 0 && ExtIn_Flag.Trg3 == 0)
     {
         trg3cnt++;
         if(trg3cnt > CNTMAX)
         {
             trg3cnt = 0;
-            trg3flag = 1;
+            ExtIn_Flag.Trg3 = 1;
             TM1639_DisplayNum(5);
             EXT_RYD3_OUT(0);
         }
@@ -1412,23 +1546,21 @@ void TRG3_Scan(void)
         trg3cnt = 0;
         if(EXT_TRG3_IN == 1) 
         {
-            trg3flag = 0;
+            ExtIn_Flag.Trg3 = 0;
             EXT_RYD3_OUT(1);
         }
     }
 }
 
-u8 trg4cnt = 0;
-u8 trg4flag = 0;
 void TRG4_Scan(void)
 {
-    if(EXT_TRG4_IN == 0 && trg4flag == 0)
+    if(EXT_TRG4_IN == 0 && ExtIn_Flag.Trg4 == 0)
     {
         trg4cnt++;
         if(trg4cnt > CNTMAX)
         {
             trg4cnt = 0;
-            trg4flag = 1;
+            ExtIn_Flag.Trg4 = 1;
             TM1639_DisplayNum(6);
             EXT_RYD4_OUT(0);
         }
@@ -1437,13 +1569,13 @@ void TRG4_Scan(void)
         trg4cnt = 0;
         if(EXT_TRG4_IN == 1) 
         {
-            trg4flag = 0;
+            ExtIn_Flag.Trg4 = 0;
             EXT_RYD4_OUT(1);
         }
     }
 }
 
-void EXT_TRG_Scan(void)
+void Test_EXT_TRG_Scan(void)
 {
     TRG_Scan();
     EMG_Scan();

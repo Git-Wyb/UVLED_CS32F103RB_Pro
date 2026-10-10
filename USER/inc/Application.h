@@ -29,6 +29,13 @@ void dispaly_uvled_real_time(u8 ch);
 void PHY_Light_ErrorLED(u8 ch, u8 onoff);
 void PHY_Light_UvonLED(u8 ch, u8 onoff);
 void PHY_CH_Error_Display(u8 ch);
-void EXT_TRG_Scan(void);
+void Test_EXT_TRG_Scan(void);
+void Ext_Trg_Scan(void);
+void Ext_Emg_Scan(void);
+void Ext_Trg1_Scan(void);
+void Ext_Trg2_Scan(void);
+void Ext_Trg3_Scan(void);
+void Ext_Trg4_Scan(void);
+void EXT_Input_Scan(void);
 
 #endif

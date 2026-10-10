@@ -28,7 +28,7 @@ int main(void)
     Init_Gpio();
     Init_Timer1(); //f=50k
     Init_Timer3();
-    Init_Usart1(9600);
+    Init_Usart1(19200);
     Init_TM1639();
     SoftI2C_Init();
     Test_Mode_Handle();
@@ -56,7 +56,7 @@ void Send_Logo(void)
     if(flag_rx_done == 1)
     {
         flag_rx_done = 0;
-        printf("\r\n2026.09.30,Soft Version V0.04\r\n");
+        printf("\r\n2026.09.30,Soft Version V0.05\r\n");
     }
 }
 
@@ -146,7 +146,7 @@ void test_ext_trg(void)
                 return;
             }
         }
-        EXT_TRG_Scan();
+        Test_EXT_TRG_Scan();
     }
 }
 
@@ -161,7 +161,7 @@ void test_eeprom(void)
     {
         TM1639_Display_UVLED_Char(DISPLAY_oPL);
     }
-    else TM1639_Display_UVLED_Char(DISPLAY_Eo1);
+    else TM1639_Display_UVLED_Char(DISPLAY_ERR);
     while(1)
     {
         FWDT_Clear();
@@ -263,7 +263,7 @@ void test_232(void)
             }
             else
             {
-                TM1639_Display_UVLED_Char(DISPLAY_Eo1);
+                TM1639_Display_UVLED_Char(DISPLAY_ERR);
             }
         }
     }

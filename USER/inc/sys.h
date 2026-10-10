@@ -80,6 +80,21 @@ typedef union{
     };
 }KEYSTU;
 
+typedef union{
+    u8 Byte;
+    struct
+    {
+        u8 Trg : 1;
+        u8 Emg : 1;
+        u8 Trg1 : 1;
+        u8 Trg2 : 1;
+        u8 Trg3 : 1;
+        u8 Trg4 : 1;
+        u8 b6 : 1;
+        u8 b7 : 1;
+    };
+}EXTINSTU;
+
 typedef struct{
     u8 hundreds;
     u8 point0;
@@ -169,9 +184,11 @@ extern u16 time_allch;
 extern u8 uvonch_last;
 extern BuzStu Buzzer_Set;
 extern u16 time_display_cnt;
+extern EXTINSTU ExtIn_Now;
+extern EXTINSTU ExtIn_Flag;
+
 void Init_FWDT(void);
 void FWDT_Clear(void);
-
 void Init_uvch(void);
 void Initial_poweron_state(void);
 void Initial_UVLed_CheckIn(void);
