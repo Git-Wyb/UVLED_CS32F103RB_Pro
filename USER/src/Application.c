@@ -8,6 +8,7 @@
 #include "gpio.h"
 
 #define CNTMAX  2
+#define SCANMAX 4 /* x10ms */
 /*
 LEVEL    MENU       MODE
 TIME     HOUR
@@ -36,7 +37,6 @@ u8 hourcnt = 0;
 u8 bkcnt = 0;
 u8 fwcnt = 0;
 u8 moden = 0;
-MODE rs_mode = RUN_MODE;
 u8 _scnt = 0;
 u8 m_mode_cnt = 0;
 u8 _bf_cnt = 0;
@@ -69,9 +69,9 @@ void Key_Handle(void)
 #if (PRO_MODE == 1)
     PHY_UvLed_Mode_Handle();
 #endif
+    PHY_Ext_Uvled_Handle();
     dispaly_uvled_real_time(run_ch);
     PHY_CH_Error_Display(run_ch-1);
-    EXT_Input_Scan();
 }
 
 #if (PRO_MODE == 0)
@@ -548,7 +548,7 @@ void PHY_UvLed_Mode_Handle(void)
 #if TEST_MODE
     rs_mode = SETTING_MODE;
 #endif
-    if(_check_poweron_allch_con_err()) return;
+    if(_check_poweron_allch_con_err() || Err_Emg) return;
     
     if(KeyStaFlag.Mode)
     {
@@ -874,7 +874,7 @@ void _set_ch_temporary_param(u8 ch)
     if(ch < 1) ch = 1;
     run_ch = ch;
     chlevel = PHY_CH[ch-1].Level;
-    chtime = PHY_CH[ch-1].Time;
+    chtime = PHY_CH[ch-1].SetTime;
 }
 
 void PHY_Mode_Switch(MODE mode)
@@ -1292,6 +1292,7 @@ void PHY_CH_Error_Display(u8 ch)
         {
             time_display_cnt = 0;
             if(PHY_CH[ch].Error_Connect == 1)         TM1639_Display_UVLED_Char(DISPLAY_BLANK);
+            else if(Err_Emg)                          TM1639_Display_UVLED_Char(DISPLAY_Eo1);
             else if(PHY_CH[ch].Error_Connect == 2)    TM1639_Display_UVLED_Char(DISPLAY_Ld3);
             else if(PHY_CH[ch].Error_Curr == ERR_Ld1) TM1639_Display_UVLED_Char(DISPLAY_Ld1);
             else if(PHY_CH[ch].Error_Curr == ERR_Ld2) TM1639_Display_UVLED_Char(DISPLAY_Ld2);
@@ -1302,11 +1303,180 @@ void PHY_CH_Error_Display(u8 ch)
 
 void PHY_Ext_Uvled_Handle(void)
 {
+    if(rs_mode != RUN_MODE) return;
+    if(Err_Emg) return;
     
+    if(Set_Mode.ext_input.setval) //pulse
+    {
+        if(ExtIn_Flag.Emg)
+        {
+            _clear_ExtInFlag();
+            Err_Emg = ERR_Eo1;
+            PHY_UvLed_Off();
+            TM1639_Display_UVLED_Char(DISPLAY_Eo1);
+        }
+        else if(ExtIn_Flag.Trg)
+        {
+            _clear_ExtInFlag();
+            run_ch = 5;
+            PHY_UVLed_Select(run_ch);
+            uvled_ready_check();
+            PHY_Ext_UvLed_switch(run_ch);
+        }
+        else 
+        {
+            if(ExtIn_Flag.Trg1)
+            {
+                _clear_ExtInFlag();
+                run_ch = 1;
+                PHY_UVLed_Select(run_ch);
+                uvled_ready_check();
+                PHY_Ext_UvLed_switch(run_ch);
+            }
+            
+            if(ExtIn_Flag.Trg2)
+            {
+                _clear_ExtInFlag();
+                run_ch = 2;
+                PHY_UVLed_Select(run_ch);
+                uvled_ready_check();
+                PHY_Ext_UvLed_switch(run_ch);
+            }
+            
+            if(ExtIn_Flag.Trg3)
+            {
+                _clear_ExtInFlag();
+                run_ch = 3;
+                PHY_UVLed_Select(run_ch);
+                uvled_ready_check();
+                PHY_Ext_UvLed_switch(run_ch);
+            }
+            
+            if(ExtIn_Flag.Trg4)
+            {
+                _clear_ExtInFlag();
+                run_ch = 4;
+                PHY_UVLed_Select(run_ch);
+                uvled_ready_check();
+                PHY_Ext_UvLed_switch(run_ch);
+            }
+        }
+    }
+    else //level
+    {
+        if(ExtIn_Flag.Emg)
+        {
+            _clear_ExtInFlag();
+            Err_Emg = ERR_Eo1;
+            PHY_UvLed_Off();
+            TM1639_Display_UVLED_Char(DISPLAY_Eo1);
+        }
+        else if(ExtIn_Flag.Trg && flag_extlevel_on == 0)
+        {
+            run_ch = 5;
+            PHY_UVLed_Select(run_ch);
+            uvled_ready_check();
+            PHY_Ext_UvLed_switch(run_ch);
+        }
+        else if(ExtIn_Flag.Trg == 0 && flag_extlevel_on == 1)
+        {
+            PHY_UvLed_Off();
+        }
+        else 
+        {
+            if(ExtIn_Flag.Trg1 && PHY_CH[0].Uvon == 0 && PHY_CH[0].flag_ext_type == 0)
+            {
+                run_ch = 1;
+                PHY_UVLed_Select(run_ch);
+                uvled_ready_check();
+                PHY_Ext_UvLed_switch(run_ch);
+                PHY_CH[0].flag_ext_type = 1;
+            }
+            else if(ExtIn_Flag.Trg1 == 0 && PHY_CH[0].Uvon == 1 && PHY_CH[0].flag_ext_type == 1)
+            {
+                run_ch = 1;
+                if(PHY_CH[0].SetTime == 0) 
+                {
+                    PHY_Ext_UvLed_switch(run_ch);
+                }
+                else
+                {
+                    if(Set_Mode.trg_pri.setval) //sig
+                    {
+                        PHY_Ext_UvLed_switch(run_ch);
+                    }
+                }
+            }
+            
+            if(ExtIn_Flag.Trg2 && PHY_CH[1].Uvon == 0 && PHY_CH[1].flag_ext_type == 0)
+            {
+                run_ch = 2;
+                PHY_UVLed_Select(run_ch);
+                uvled_ready_check();
+                PHY_Ext_UvLed_switch(run_ch);
+                PHY_CH[1].flag_ext_type = 1;
+            }
+            else if(ExtIn_Flag.Trg2 == 0 && PHY_CH[1].Uvon == 1 && PHY_CH[1].flag_ext_type == 1)
+            {
+                run_ch = 2;
+                if(PHY_CH[1].SetTime == 0) PHY_Ext_UvLed_switch(run_ch);
+                else
+                {
+                    if(Set_Mode.trg_pri.setval) //sig
+                    {
+                        PHY_Ext_UvLed_switch(run_ch);
+                    }
+                }
+            }
+            
+            if(ExtIn_Flag.Trg3 && PHY_CH[2].Uvon == 0 && PHY_CH[2].flag_ext_type == 0)
+            {
+                run_ch = 3;
+                PHY_UVLed_Select(run_ch);
+                uvled_ready_check();
+                PHY_Ext_UvLed_switch(run_ch);
+                PHY_CH[2].flag_ext_type = 1;
+            }
+            else if(ExtIn_Flag.Trg3 == 0 && PHY_CH[2].Uvon == 1 && PHY_CH[2].flag_ext_type == 1)
+            {
+                run_ch = 3;
+                if(PHY_CH[2].SetTime == 0) PHY_Ext_UvLed_switch(run_ch);
+                else
+                {
+                    if(Set_Mode.trg_pri.setval) //sig
+                    {
+                        PHY_Ext_UvLed_switch(run_ch);
+                    }
+                }
+            }
+            
+            if(ExtIn_Flag.Trg4 && PHY_CH[3].Uvon == 0 && PHY_CH[3].flag_ext_type == 0)
+            {
+                run_ch = 4;
+                PHY_UVLed_Select(run_ch);
+                uvled_ready_check();
+                PHY_Ext_UvLed_switch(run_ch);
+                PHY_CH[3].flag_ext_type = 1;
+            }
+            else if(ExtIn_Flag.Trg4 == 0 && PHY_CH[3].Uvon == 1 && PHY_CH[3].flag_ext_type == 1)
+            {
+                run_ch = 4;
+                if(PHY_CH[3].SetTime == 0) PHY_Ext_UvLed_switch(run_ch);
+                else
+                {
+                    if(Set_Mode.trg_pri.setval) //sig
+                    {
+                        PHY_Ext_UvLed_switch(run_ch);
+                    }
+                }
+            }
+        }
+    }
 }
 
 void EXT_Input_Scan(void)
 {
+    if(rs_mode != RUN_MODE) return;
     Ext_Trg_Scan(); /* All channels irradiation input. */
     Ext_Emg_Scan(); /* emergency stop input. */
     Ext_Trg1_Scan();/* CH1 Individual irradiation input. */
@@ -1314,26 +1484,39 @@ void EXT_Input_Scan(void)
     Ext_Trg3_Scan();/* CH3 Individual irradiation input. */
     Ext_Trg4_Scan();/* CH4 Individual irradiation input. */
 }
-    
+   
+u8 trgnone_cnt = 0;
+u8 emgnone_cnt = 0;
+u8 trg1none_cnt = 0;
+u8 trg2none_cnt = 0;
+u8 trg3none_cnt = 0;
+u8 trg4none_cnt = 0;
 void Ext_Trg_Scan(void)
 {
     if(EXT_TRG_IN == 0 && ExtIn_Now.Trg == 0)
     {
+        trgnone_cnt = 0;
         trgcnt++;
-        if(trgcnt > CNTMAX)
+        if(trgcnt >= SCANMAX)
         {
             trgcnt = 0;
             ExtIn_Now.Trg = 1;
-            run_ch = 5;
-            PHY_UvLed_switch(run_ch);
+            ExtIn_Flag.Trg = 1;
         }
     }else 
     {
         trgcnt = 0;
-        if(EXT_TRG_IN == 1) 
+        if(EXT_TRG_IN == 1 && ExtIn_Now.Trg == 1) 
         {
-            ExtIn_Now.Trg = 0;
+            trgnone_cnt++;
+            if(trgnone_cnt >= SCANMAX)
+            {
+                trgnone_cnt = 0;
+                ExtIn_Now.Trg = 0;
+                ExtIn_Flag.Trg = 0;
+            }
         }
+        else trgnone_cnt = 0;
     }
 }
 
@@ -1341,19 +1524,28 @@ void Ext_Emg_Scan(void)
 {
     if(EXT_EMG_IN == 0 && ExtIn_Now.Emg == 0)
     {
+        emgnone_cnt = 0;
         emgcnt++;
-        if(emgcnt > CNTMAX)
+        if(emgcnt >= SCANMAX)
         {
             emgcnt = 0;
             ExtIn_Now.Emg = 1;
+            ExtIn_Flag.Emg = 1;
         }
     }else 
     {
         emgcnt = 0;
-        if(EXT_EMG_IN == 1) 
+        if(EXT_EMG_IN == 1 && ExtIn_Now.Emg == 1) 
         {
-            ExtIn_Now.Emg = 0;
+            emgnone_cnt++;
+            if(emgnone_cnt >= SCANMAX)
+            {
+                emgcnt = 0;
+                ExtIn_Now.Emg = 0;
+                ExtIn_Flag.Emg = 0;
+            }
         }
+        else emgnone_cnt = 0;
     }
 }
 
@@ -1361,19 +1553,28 @@ void Ext_Trg1_Scan(void)
 {
     if(EXT_TRG1_IN == 0 && ExtIn_Now.Trg1 == 0)
     {
+        trg1none_cnt = 0;
         trg1cnt++;
-        if(trg1cnt > CNTMAX)
+        if(trg1cnt >= SCANMAX)
         {
             trg1cnt = 0;
             ExtIn_Now.Trg1 = 1;
+            ExtIn_Flag.Trg1 = 1;
         }
     }else 
     {
         trg1cnt = 0;
-        if(EXT_TRG1_IN == 1) 
+        if(EXT_TRG1_IN == 1 && ExtIn_Now.Trg1 == 1) 
         {
-            ExtIn_Now.Trg1 = 0;
+            trg1none_cnt++;
+            if(trg1none_cnt >= SCANMAX)
+            {
+                trg1none_cnt = 0;
+                ExtIn_Now.Trg1 = 0;
+                ExtIn_Flag.Trg1 = 0;
+            }
         }
+        else trg1none_cnt = 0;
     }
 }
 
@@ -1381,19 +1582,28 @@ void Ext_Trg2_Scan(void)
 {
     if(EXT_TRG2_IN == 0 && ExtIn_Now.Trg2 == 0)
     {
+        trg2none_cnt = 0;
         trg2cnt++;
-        if(trg2cnt > CNTMAX)
+        if(trg2cnt >= SCANMAX)
         {
             trg2cnt = 0;
             ExtIn_Now.Trg2 = 1;
+            ExtIn_Flag.Trg2 = 1;
         }
     }else 
     {
         trg2cnt = 0;
-        if(EXT_TRG2_IN == 1) 
+        if(EXT_TRG2_IN == 1 && ExtIn_Now.Trg2 == 1) 
         {
-            ExtIn_Now.Trg2 = 0;
+            trg2none_cnt++;
+            if(trg2none_cnt >= SCANMAX)
+            {
+                trg2none_cnt = 0;
+                ExtIn_Now.Trg2 = 0;
+                ExtIn_Flag.Trg2 = 0;
+            }
         }
+        else trg2none_cnt = 0;
     }
 }
 
@@ -1401,19 +1611,28 @@ void Ext_Trg3_Scan(void)
 {
     if(EXT_TRG3_IN == 0 && ExtIn_Now.Trg3 == 0)
     {
+        trg3none_cnt = 0;
         trg3cnt++;
-        if(trg3cnt > CNTMAX)
+        if(trg3cnt >= SCANMAX)
         {
             trg3cnt = 0;
             ExtIn_Now.Trg3 = 1;
+            ExtIn_Flag.Trg3 = 1;
         }
     }else 
     {
         trg3cnt = 0;
-        if(EXT_TRG3_IN == 1) 
+        if(EXT_TRG3_IN == 1 && ExtIn_Now.Trg3 == 1) 
         {
-            ExtIn_Now.Trg3 = 0;
+            trg3none_cnt++;
+            if(trg3none_cnt >= SCANMAX)
+            {
+                trg3none_cnt = 0;
+                ExtIn_Now.Trg3 = 0;
+                ExtIn_Flag.Trg3 = 0;
+            }
         }
+        else trg3none_cnt = 0;
     }
 }
 
@@ -1421,22 +1640,42 @@ void Ext_Trg4_Scan(void)
 {
     if(EXT_TRG4_IN == 0 && ExtIn_Now.Trg4 == 0)
     {
+        trg4none_cnt = 0;
         trg4cnt++;
-        if(trg4cnt > CNTMAX)
+        if(trg4cnt >= SCANMAX)
         {
             trg4cnt = 0;
             ExtIn_Now.Trg4 = 1;
+            ExtIn_Flag.Trg4 = 1;
         }
     }else 
     {
         trg4cnt = 0;
-        if(EXT_TRG4_IN == 1) 
+        if(EXT_TRG4_IN == 1 && ExtIn_Now.Trg4 == 1) 
         {
-            ExtIn_Now.Trg4 = 0;
+            trg4none_cnt++;
+            if(trg4none_cnt >= SCANMAX)
+            {
+                trg4none_cnt = 0;
+                ExtIn_Now.Trg4 = 0;
+                ExtIn_Flag.Trg4 = 0;
+            }
         }
+        else trg4none_cnt = 0;
     }
 }
 
+void _clear_ExtInFlag(void)
+{
+    ExtIn_Flag.Byte = 0;
+    trgnone_cnt = 0;
+    emgnone_cnt = 0;
+    trg1none_cnt = 0;
+    trg2none_cnt = 0;
+    trg3none_cnt = 0;
+    trg4none_cnt = 0;
+}
+    
 void TRG_Scan(void)
 {
     if(EXT_TRG_IN == 0 && ExtIn_Flag.Trg == 0)

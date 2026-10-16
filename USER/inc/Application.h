@@ -37,5 +37,7 @@ void Ext_Trg2_Scan(void);
 void Ext_Trg3_Scan(void);
 void Ext_Trg4_Scan(void);
 void EXT_Input_Scan(void);
+void PHY_Ext_Uvled_Handle(void);
+void _clear_ExtInFlag(void);
 
 #endif

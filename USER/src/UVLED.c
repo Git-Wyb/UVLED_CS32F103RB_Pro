@@ -14,14 +14,14 @@ u8 _check_uvled_current_err(void)
 u8 _check_uvled_error(void)
 {
     u8 i = 0;
-    i = (_check_uvled_connect_err() << 4) | _check_uvled_current_err();
+    i = (_check_uvled_connect_err() << 4) | _check_uvled_current_err() | Err_Emg;
     return i;
 }
 
 u8 _check_uvled_errLd123(void)
 {
     return (PHY_CH[0].Error_Connect==2 || PHY_CH[1].Error_Connect==2 || PHY_CH[2].Error_Connect==2 || PHY_CH[3].Error_Connect==2
-           || _check_uvled_current_err());
+           || _check_uvled_current_err() || Err_Emg);
 }
 
 u8 _check_poweron_allch_con_err(void)
@@ -33,7 +33,7 @@ u8 _check_uvled_ch_error(u8 ch)
 {
     u8 i = 0;
     if(ch > CHNUM-1) return 1;
-    i = PHY_CH[ch].Error_Connect | (PHY_CH[ch].Error_Curr<<1);
+    i = PHY_CH[ch].Error_Connect | (PHY_CH[ch].Error_Curr<<1) | Err_Emg;
     return i;
 }
 
@@ -68,6 +68,13 @@ u8 _check_uvled_option(void)
     return i;
 }
 
+u8 _check_uvled_ready(void)
+{
+    u8 i = 0;
+    i = PHY_CH[0].Ready | (PHY_CH[1].Ready<<1) | (PHY_CH[2].Ready<<2) | (PHY_CH[3].Ready<<3);
+    return i;
+}
+
 void _clear_uvled_option(void)
 {
     u8 i = 0;
@@ -81,8 +88,8 @@ void PHY_Set_UVLed_Time(u32 time)
     {
         if(PHY_CH[i].Option) 
         {
-            PHY_CH[i].Time = time;;
-            SEL_CH.Time = time;
+            PHY_CH[i].SetTime = time;;
+            SEL_CH.SetTime = time;
         }
     }
 }
@@ -102,7 +109,7 @@ u32 _get_uvled_time(void)
     u8 ui = 0;
     for(ui = 0; ui < CHNUM; ui++)
     {
-        if(PHY_CH[ui].Option)   return PHY_CH[ui].Time;
+        if(PHY_CH[ui].Option)   return PHY_CH[ui].SetTime;
     }
     return 0;
 }
@@ -112,13 +119,12 @@ void uvled_ready_check(void)
     u8 ch = 0;
     for(ch = 0; ch < CHNUM; ch++)
     {
-        if(PHY_CH[ch].Option && PHY_CH[ch].Error_Connect == 0 && PHY_CH[ch].Error_Curr == 0 && PHY_CH[ch].Uvon == 0)
+        if(Err_Emg==0 && rs_mode==RUN_MODE && PHY_CH[ch].Error_Connect==0 && PHY_CH[ch].Error_Curr==0 && PHY_CH[ch].Uvon==0)
         {
-            if(PHY_CH[ch].Level) PHY_CH[ch].Ready = 1;
-            else PHY_CH[ch].Ready = 0;
+            PHY_CH[ch].Ready = 1;
         }
         else PHY_CH[ch].Ready = 0;
-        
+       
         ext_ch_ready_output(ch,PHY_CH[ch].Ready);
     }
     
@@ -163,8 +169,8 @@ void PHY_UvLed_switch(u8 ch)
         if(PHY_CH[channel].Ready == 1 && PHY_CH[channel].Uvon == 0 && PHY_CH[channel].Level != 0) //UV LED ON
         {
             PHY_CH[channel].Ready = 0;
-            PHY_CH[channel].Uvledon.timer = PHY_CH[channel].Time;
-            PHY_CH[ci].Uvledon.flag_off = 0;
+            PHY_CH[channel].Uvledon.timer = PHY_CH[channel].SetTime;
+            PHY_CH[channel].Uvledon.flag_off = 0;
             PHY_Uvled_PwmSwitch(channel,1);
             Bueezr_Config(200,0,0);
             CH_LED_switch(channel,0,1);
@@ -174,7 +180,7 @@ void PHY_UvLed_switch(u8 ch)
             TM1639_LED_switch(LED_LEVEL,0);
             TM1639_LED_switch(LED_TIME,0);
         }
-        else if(PHY_CH[channel].Uvon == 1) //UV LED OFF
+        else if(PHY_CH[channel].Uvon == 1 && PHY_CH[channel].flag_ext_uvon == 0) //UV LED OFF
         {
             PHY_CH[channel].Uvledon.timer = 0;
             PHY_CH[channel].Uvledon.flag_off = 0;
@@ -194,7 +200,7 @@ void PHY_UvLed_switch(u8 ch)
                 {
                     flag_allch_on = 1;
                     PHY_CH[ci].Ready = 0;
-                    PHY_CH[ci].Uvledon.timer = PHY_CH[ci].Time;
+                    PHY_CH[ci].Uvledon.timer = PHY_CH[ci].SetTime;
                     PHY_CH[ci].Uvledon.flag_off = 0;
                     Bueezr_Config(200,0,0);
                     PHY_Uvled_PwmSwitch(ci,1);
@@ -207,7 +213,79 @@ void PHY_UvLed_switch(u8 ch)
                 }
             }
         }
-        else
+        else if(flag_extall_on == 0)
+        {
+            PHY_UvLed_Off();
+        }
+    }
+}
+
+void PHY_Ext_UvLed_switch(u8 ch)
+{
+    u8 ci = 0,channel = 0;
+    if(ch < 1) return;
+    channel = ch - 1;
+    
+    if(_check_uvled_sta() == 0 && _check_uvled_errLd123() == 0) uvonch_last = 0;
+    /* If a single channel is selected to be turned on, then only that single channel can be selected to be turned off. 
+       Selecting all channels is not possible. */
+    if(channel < CHNUM)// && uvonch_last <= CHNUM) 
+    {
+        if(PHY_CH[channel].Ready == 1 && PHY_CH[channel].Uvon == 0 && PHY_CH[channel].Level != 0) //UV LED ON
+        {
+            PHY_CH[channel].Ready = 0;
+            PHY_CH[channel].Uvledon.timer = PHY_CH[channel].SetTime;
+            PHY_CH[channel].Uvledon.flag_off = 0;
+            PHY_CH[channel].flag_ext_uvon = 1;
+            PHY_Uvled_PwmSwitch(channel,1);
+            Bueezr_Config(200,0,0);
+            CH_LED_switch(channel,0,1);
+            uvonch_last = ch;
+            Time_uvch[channel].timer = 0;
+            time_allch = 0;
+            TM1639_LED_switch(LED_LEVEL,0);
+            TM1639_LED_switch(LED_TIME,0);
+        }
+        else if(PHY_CH[channel].Uvon == 1 && PHY_CH[channel].flag_ext_uvon == 1) //UV LED OFF
+        {
+            PHY_CH[channel].Uvledon.timer = 0;
+            PHY_CH[channel].Uvledon.flag_off = 0;
+            PHY_CH[channel].flag_ext_type = 0;
+            PHY_CH[channel].flag_ext_uvon = 0;
+            PHY_Uvled_PwmSwitch(channel,0);
+            CH_LED_switch(channel,0,0);
+        }
+    }
+    /* If all the channels are selected and turned on, then only the option of turning off all channels is available.
+       Selecting a single channel is not possible. */
+    else if(channel >= CHNUM && /*(uvonch_last == 0 || uvonch_last > CHNUM) &&*/ _check_uvled_errLd123() == 0) //ALL
+    {
+        if(_check_uvled_sta() == 0)
+        {
+            for(ci = 0; ci < CHNUM; ci++)
+            {
+                if(PHY_CH[ci].Ready == 1 && PHY_CH[ci].Uvon == 0 && PHY_CH[channel].Level != 0)
+                {
+                    flag_allch_on = 1;
+                    if(Set_Mode.ext_input.setval == 0) flag_extlevel_on = 1;
+                    else flag_extlevel_on = 0;
+                    flag_extall_on = 1;
+                    PHY_CH[ci].Ready = 0;
+                    PHY_CH[ci].Uvledon.timer = PHY_CH[ci].SetTime;
+                    PHY_CH[ci].Uvledon.flag_off = 0;
+                    PHY_CH[ci].flag_ext_uvon = 1;
+                    Bueezr_Config(200,0,0);
+                    PHY_Uvled_PwmSwitch(ci,1);
+                    CH_LED_switch(ci,0,1);
+                    uvonch_last = ch;
+                    Time_uvch[ci].timer = 0;
+                    time_allch = 0;
+                    TM1639_LED_switch(LED_LEVEL,0);
+                    TM1639_LED_switch(LED_TIME,0);
+                }
+            }
+        }
+        else if(flag_extall_on)
         {
             PHY_UvLed_Off();
         }
@@ -221,8 +299,14 @@ void PHY_UvLed_Off(void)
     { 
         PHY_CH[ch].Uvledon.timer = 0;
         PHY_CH[ch].Uvledon.flag_off = 0;
+        PHY_CH[ch].flag_ext_type = 0;
+        PHY_CH[ch].flag_ext_uvon = 0;
         Time_uvch[ch].timer = 0;
         time_allch = 0;
+        uvonch_last = 0;
+        flag_allch_on = 0;
+        flag_extall_on = 0;
+        flag_extlevel_on = 0;
         PHY_Uvled_PwmSwitch(ch,0);
         PHY_Light_UvonLED(ch,0);
     }
@@ -247,7 +331,12 @@ void PHY_Uvled_PwmSwitch(u8 ch, u8 onoff)
 {
     if(ch > CHNUM-1) return;
     if(onoff)
-    {
+    {/*
+        if(flag_test_mode && PHY_CH[ch].Level == 100) 
+        {
+            timer1_channel_gpiomode(ch,1,PHY_CH[ch].Level);
+        }
+        else*/
         timer1_channel_gpiomode(ch,0,0);
         tim_pwm_output_enable_ctrl(TIM1,ch,1);
         PHY_CH[ch].undercurr_cnt = 0;
@@ -267,6 +356,7 @@ void PHY_Uvled_PwmSwitch(u8 ch, u8 onoff)
 void PHY_UVLed_Connect_Check(void)
 {
     u8 ch = 0;
+    if(Err_Emg) return;
     UVCh_Check.b0 = CH1_CHECK1_IN;
     UVCh_Check.b1 = CH1_CHECK2_IN;
     UVCh_Check.b2 = CH2_CHECK1_IN;

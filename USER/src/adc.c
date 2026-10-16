@@ -173,7 +173,7 @@ void DMA1_Channel1_IRQHandler(void)
                         {
                             PHY_CH[ich].overcurr_cnt = 0;
                             PHY_CH[ich].undercurr_cnt++;
-                            if(PHY_CH[ich].undercurr_cnt >= 5)
+                            if(PHY_CH[ich].undercurr_cnt >= 10)
                             {
                                 PHY_CH[ich].undercurr_cnt = 0;
                                 PHY_CH[ich].Error_Curr = ERR_Ld2;
@@ -183,7 +183,7 @@ void DMA1_Channel1_IRQHandler(void)
                         }
                         else if(PHY_CH[ich].Current > 2400)
                         {
-                            PHY_CH[ich].undercurr_cnt = 0;;
+                            PHY_CH[ich].undercurr_cnt = 0;
                             PHY_CH[ich].overcurr_cnt++;
                             if(PHY_CH[ich].overcurr_cnt >= 2)
                             {
@@ -192,6 +192,11 @@ void DMA1_Channel1_IRQHandler(void)
                                 PHY_Uvled_PwmSwitch(ich,0);
                                 PHY_CH[ich].Uvon = 0;
                             }
+                        }
+                        else
+                        {
+                            PHY_CH[ich].undercurr_cnt = 0;
+                            PHY_CH[ich].overcurr_cnt = 0;
                         }
                     }
                     else
@@ -235,7 +240,19 @@ void uvled_current_error_handle(void)
     u8 ch = 0;
     for(ch = 0; ch < 4; ch++)
     {
-        if(PHY_CH[ch].Error_Curr == ERR_Ld1 && PHY_CH[ch].flag_error_curr == 0) //overcurrent
+        if(Err_Emg)
+        {
+            if(PHY_CH[ch].Error_Connect == 0 && flag_err_emg == 0)
+            {
+                CH_LED_switch(ch,1,1); 
+            }
+            if(ch == 3 && flag_err_emg == 0)
+            {
+                Bueezr_Config(200,100,3);
+                flag_err_emg = 1;
+            }
+        }
+        else if(PHY_CH[ch].Error_Curr == ERR_Ld1 && PHY_CH[ch].flag_error_curr == 0) //overcurrent
         {
             PHY_CH[ch].flag_error_curr = 1;
             PHY_CH[ch].Uvledon.timer = 0;
@@ -260,12 +277,15 @@ void uvled_current_error_handle(void)
     {
         if(_check_uvled_current_err() && flag_allch_on == 1)
         {
-            flag_allch_on = 0;
-            uvonch_last = 0;
             PHY_UvLed_Off();
         }
     }
-    if(_check_uvled_sta() == 0) _UVLED_CurrCheck_Disable();
+    if(_check_uvled_sta() == 0)
+    {
+        flag_extall_on = 0;
+        flag_extlevel_on = 0;
+        _UVLED_CurrCheck_Disable();
+    }
 }
 
 void uvled_current_detection(void)

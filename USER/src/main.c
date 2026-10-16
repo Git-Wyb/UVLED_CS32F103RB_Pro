@@ -16,6 +16,9 @@
 #include "string.h"
 void Test_Mode_Handle(void);
 void Send_Logo(void);
+void TestMode_Key_Handle(void);
+void TestMode_current_error_handle(void);
+void test_run_mode(void);
 
 u8 pcnt = 0;
 u8 red = 0xAA;
@@ -56,7 +59,7 @@ void Send_Logo(void)
     if(flag_rx_done == 1)
     {
         flag_rx_done = 0;
-        printf("\r\n2026.09.30,Soft Version V0.05\r\n");
+        printf("\r\n2026.10.16,Soft Version V0.06\r\n");
     }
 }
 
@@ -116,6 +119,10 @@ void Test_Mode_Handle(void)
             
             case 4:
                 test_chuvled_out();
+                break;
+            
+            case 5:
+                test_run_mode();
                 break;
             
             default:
@@ -190,7 +197,7 @@ void test_setp_set(void)
     {
         _clear_KeyStaFlag();
         testcnt++;
-        if(testcnt > 4) testcnt = 1;
+        if(testcnt > 5) testcnt = 1;
         display_test_mode(testcnt);
         
     }
@@ -198,6 +205,7 @@ void test_setp_set(void)
     {
         _clear_KeyStaFlag();
         if(testcnt) testcnt--;
+        if(testcnt == 0) testcnt = 5;
         display_test_mode(testcnt);
     }
     else if(KeyStaFlag.Set)
@@ -225,6 +233,10 @@ void display_test_mode(u8 set)
         
         case 4:
             TM1639_Display_UVLED_Char(DISPLAY_ALL);
+            break;
+        
+        case 5:
+            TM1639_Display_UVLED_Char(DISPLAY_RUN);
             break;
     }
 }
@@ -337,13 +349,82 @@ void test_chuvled_out(void)
                 PHY_Uvled_PwmSwitch(3,0);
                 CH_LED_switch(3,0,0);
             }
-        }/*
-        if(KeyStaFlag.Mode)
-        {
-            _clear_KeyStaFlag();
-            run_ch = 1;
-            PHY_UVLed_Select(run_ch);
-            return;
-        }*/
+        }
     }
+}
+
+void test_run_mode(void)
+{
+    TM1639_Display_UVLED_Char(DISPLAY_RUN);
+    while(1)
+    {
+        FWDT_Clear();
+        if(time_keyscan == 0)
+        {
+            time_keyscan = 20;
+            TM1639_Read_Key();
+            TestMode_Key_Handle();
+            PHY_UVLed_Connect_Check();
+        }
+        PHY_UvLed_WaitOff();
+        TestMode_current_error_handle();
+    }
+}
+
+void TestMode_Key_Handle(void)
+{
+    Key_Up_Scan();
+    Key_Down_Scan();
+    Key_Set_Scan();
+    Key_Bk_Scan();
+    Key_Fw_Scan();
+    Key_Uvon_Scan();
+    Key_Ch_Scan();
+    Key_Mode_Scan();
+    uvled_ready_check();
+    PHY_UvLed_Mode_Handle();
+    dispaly_uvled_real_time(run_ch);
+    PHY_CH_Error_Display(run_ch-1);
+}    
+
+void TestMode_current_error_handle(void)
+{
+    u8 ch = 0;
+    for(ch = 0; ch < 4; ch++)
+    {
+        if(PHY_CH[ch].Error_Curr == ERR_Ld1 && PHY_CH[ch].flag_error_curr == 0) //overcurrent
+        {
+            PHY_CH[ch].flag_error_curr = 1;
+            PHY_CH[ch].Uvledon.timer = 0;
+            PHY_CH[ch].Uvledon.flag_off = 0;
+            TM1639_Display_UVLED_Char(DISPLAY_Ld1); //high
+            PHY_Uvled_PwmSwitch(ch,0);
+            CH_LED_switch(ch,PHY_CH[ch].Error_Curr,1);
+            Bueezr_Config(200,100,3);
+            PHY_CH[ch].Error_Curr = 0;
+            PHY_CH[ch].flag_error_curr = 0;
+        }
+        else if(PHY_CH[ch].Error_Curr == ERR_Ld2 && PHY_CH[ch].flag_error_curr == 0) //undercurrent
+        {
+            PHY_CH[ch].flag_error_curr = 1;
+            PHY_CH[ch].Uvledon.timer = 0;
+            PHY_CH[ch].Uvledon.flag_off = 0;
+            TM1639_Display_UVLED_Char(DISPLAY_Ld2); //low
+            PHY_Uvled_PwmSwitch(ch,0);
+            CH_LED_switch(ch,PHY_CH[ch].Error_Curr,1);
+            Bueezr_Config(200,100,3);
+            PHY_CH[ch].Error_Curr = 0;
+            PHY_CH[ch].flag_error_curr = 0;
+        }
+    }
+    if(run_ch > CHNUM) //ALL CH
+    {
+        if(_check_uvled_current_err() && flag_allch_on == 1)
+        {
+            flag_allch_on = 0;
+            uvonch_last = 0;
+            PHY_UvLed_Off();
+        }
+    }
+    if(_check_uvled_sta() == 0) _UVLED_CurrCheck_Disable();
 }

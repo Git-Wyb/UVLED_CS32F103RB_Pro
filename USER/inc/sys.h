@@ -42,12 +42,12 @@ typedef struct{
 }Setting_Stu;
 
 typedef struct{
-    Setting_Stu ext_input;
-    Setting_Stu trg_pri;
-    Setting_Stu buzzer_sw;
-    Setting_Stu opl_not;
-    Setting_Stu more_led;
-    Setting_Stu usart_baud;
+    Setting_Stu ext_input;   //External input method; 0:LEU Level; 1:Pul Pulse
+    Setting_Stu trg_pri;     //TRG Priority; 0:EIN Time priority; 1:SiG Signal priority
+    Setting_Stu buzzer_sw;   //Buzzer; 0:OFF; 1:ON
+    Setting_Stu opl_not;     //Attendant exclusion; 0:OFF; 1:ON
+    Setting_Stu more_led;    //Multi-chip LED; 0:OFF; 1:ON
+    Setting_Stu usart_baud;  //RS-232;baud 0:9600; 1:19200; 2:38400
 }Proj_Stu;
 
 typedef union{
@@ -113,27 +113,32 @@ typedef struct{
     NUMSTU Cumulative_Time;
     CH_UVON Uvledon;
     u8 Uvch;
-    u16 Time; //max=9990//9990*100ms=999s
+    u16 SetTime; //max=9990//9990*100ms=999s
+    u32 CumulTime;
     u8 Level;
     u8 Uvon;
     u8 Option;
     u8 Ready;
     u16 Current;
     u8 flag_error_curr;
+    u8 ErrCode;
     u8 Error_Curr;
     u8 Error_Connect;
     u8 undercurr_cnt;
     u8 overcurr_cnt;
+    u8 flag_ext_type;
+    u8 flag_ext_uvon;
 }CH_STU;
 
 typedef enum{
-    NO_ERROR = 0,
-    ERR_Ld1 = 1,
-    ERR_Ld2 = 2,
-    ERR_Ld3 = 3,
-    ERR_Ld4 = 4,
-    ERR_Eo1 = 12,
-    ERR_FE2 = 32,
+    NONE_ERR = 0,
+    ERR_UNUNIT = 1, //Ununited
+    ERR_Eo1 = 12,   //Emergency
+    ERR_FE2 = 32,   //EEPROM Error
+    ERR_Ld1 = 41,   //UV-LED over current
+    ERR_Ld2 = 42,   //UV-LED under current
+    ERR_Ld3 = 43,   //UV-LED faulty union
+    ERR_Ld4 = 44,   //UV-LED cannot be identified
 }ERROR_CODE;
 
 
@@ -152,11 +157,17 @@ typedef enum{
 #define flag_allch_on      Flag1.b3
 #define flag_test_mode     Flag1.b4
 #define flag_test_232      Flag1.b5
+#define flag_extall_on     Flag1.b6
+#define flag_err_emg       Flag1.b7
+
+#define flag_extlevel_on   Flag2.b0
 
 extern BaseFlagStu Flag0;
 extern BaseFlagStu Flag1;
+extern BaseFlagStu Flag2;
 extern KEYSTU KeySta;
 extern u16 time_ms;
+extern u8 time_10ms;
 extern u16 time_100ms;
 extern u16 time_keyscan;
 extern u8 keysta_last;
@@ -171,6 +182,7 @@ extern u16 Adc_Value_Buff[5][7];
 extern u16 time_adc_conv;
 extern u16 uvled_time;
 extern BaseFlagStu UVCh_Check;
+extern MODE rs_mode;
 extern Proj_Stu Set_Mode;
 extern Proj_Stu Set_Mode_Cache;
 extern Proj_Stu Initial_ModeSet;
@@ -186,6 +198,7 @@ extern BuzStu Buzzer_Set;
 extern u16 time_display_cnt;
 extern EXTINSTU ExtIn_Now;
 extern EXTINSTU ExtIn_Flag;
+extern u8 Err_Emg;
 
 void Init_FWDT(void);
 void FWDT_Clear(void);

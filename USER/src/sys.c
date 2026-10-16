@@ -10,10 +10,12 @@
 #include "gpio.h"
 
 u16 time_ms = 0;
+u8 time_10ms = 0;
 u16 time_100ms = 0;
 u16 time_keyscan = 0;
 BaseFlagStu Flag0 = {0};
 BaseFlagStu Flag1 = {0};
+BaseFlagStu Flag2 = {0};
 KEYSTU KeySta = {0};
 KEYSTU KeyStaNow = {0};
 KEYSTU KeyStaFlag = {0};
@@ -28,6 +30,7 @@ u16 Adc_Value_Buff[5][7] = {0};
 u16 time_adc_conv = 50;
 u16 uvled_time = 0;
 BaseFlagStu UVCh_Check = {0};
+MODE rs_mode = RUN_MODE;
 Proj_Stu Set_Mode = {0};
 Proj_Stu Set_Mode_Cache = {0};
 u16 time_adc_wait = 0;
@@ -41,23 +44,24 @@ BuzStu Buzzer_Set = {0};
 u16 time_display_cnt = 0;
 EXTINSTU ExtIn_Now = {0};
 EXTINSTU ExtIn_Flag = {0};
+u8 Err_Emg = 0;
 
-NUMSTU display_soft_version = { //Ver0.05
+NUMSTU display_soft_version = { //Ver0.06
     .hundreds = 0,
     .point0 = 1,
     .decde = 0,
     .point1 = 0,
-    .unit = 5,
+    .unit = 6,
     .point2 = 0
 };
 
 Proj_Stu Initial_ModeSet = {
-    .ext_input.setval = 0,  //LEU
-    .trg_pri.setval = 0,    //EIN
-    .buzzer_sw.setval = 0,  //OFF
-    .opl_not.setval = 0,    //OFF
-    .more_led.setval = 0,   //OFF
-    .usart_baud.setval = 1  //192000
+    .ext_input.setval = 0,  //External input method; 0:LEU Level; 1:Pul Pulse
+    .trg_pri.setval = 0,    //TRG Priority; 0:EIN Time priority; 1:SiG Signal priority
+    .buzzer_sw.setval = 0,  //Buzzer; 0:OFF; 1:ON
+    .opl_not.setval = 0,    //Attendant exclusion; 0:OFF; 1:ON
+    .more_led.setval = 0,   //Multi-chip LED; 0:OFF; 1:ON
+    .usart_baud.setval = 1  //RS-232;baud 0:9600; 1:19200; 2:38400
 };
 
 //system_clock = 72MHz.

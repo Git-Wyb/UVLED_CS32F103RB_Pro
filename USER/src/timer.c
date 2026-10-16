@@ -9,6 +9,7 @@
 #include "TM1639.h"
 #include "adc.h"
 #include "UVLED.h"
+#include "Application.h"
 
 u16 timer_ch_buff[] = {GPIO_PIN_8,GPIO_PIN_9,GPIO_PIN_10,GPIO_PIN_11};
 
@@ -87,7 +88,13 @@ void TIM3_IRQHandler(void)
         if(time_keyscan) time_keyscan--;
         if(time_adc_conv) time_adc_conv--;
         if(flag_adc_en && time_adc_wait) time_adc_wait--;
-
+        time_10ms++;
+        if(time_10ms >= 10)
+        {
+            time_10ms = 0;
+            EXT_Input_Scan();
+        }
+        
         time_100ms++;
         if(time_100ms >= 100)
         {
@@ -360,7 +367,7 @@ void UV_LED_Switch(void)
                     timer1_channel_gpiomode(channel,0,0);
                     tim_pwm_output_enable_ctrl(TIM1,channel,PHY_CH[channel].Uvon);
                 }
-                PHY_CH[channel].Uvledon.timer = PHY_CH[channel].Time;
+                PHY_CH[channel].Uvledon.timer = PHY_CH[channel].SetTime;
                 if(flag_adc_en == 0) _UVLED_CurrCheck_Enable();
             }
         }

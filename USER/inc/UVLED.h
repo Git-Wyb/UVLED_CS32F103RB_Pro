@@ -30,5 +30,7 @@ u8 _check_uvled_errLd123(void);
 u8 _check_uvled_connect_Ld3(void);
 u8 _check_poweron_allch_con_err(void);
 void ext_ch_ready_output(u8 ch,u8 sta);
+void PHY_Ext_UvLed_switch(u8 ch);
+u8 _check_uvled_ready(void);
 
 #endif
