@@ -8,6 +8,7 @@
 #include "TM1639.h"
 #include "Application.h"
 #include "gpio.h"
+#include "eeprom.h"
 
 u16 time_ms = 0;
 u8 time_10ms = 0;
@@ -35,7 +36,7 @@ Proj_Stu Set_Mode = {0};
 Proj_Stu Set_Mode_Cache = {0};
 u16 time_adc_wait = 0;
 u8 time_keysta_del = 0;
-u8 run_ch = 1;
+u8 run_ch = 0;
 NUMSTU Time_stu = {0};
 CH_UVON Time_uvch[CHNUM] = {0};
 u16 time_allch = 0;
@@ -45,13 +46,14 @@ u16 time_display_cnt = 0;
 EXTINSTU ExtIn_Now = {0};
 EXTINSTU ExtIn_Flag = {0};
 u8 Err_Emg = 0;
+u16 time_display_refresh = 0;
 
 NUMSTU display_soft_version = { //Ver0.06
     .hundreds = 0,
     .point0 = 1,
     .decde = 0,
     .point1 = 0,
-    .unit = 6,
+    .unit = 7,
     .point2 = 0
 };
 
@@ -60,7 +62,7 @@ Proj_Stu Initial_ModeSet = {
     .trg_pri.setval = 0,    //TRG Priority; 0:EIN Time priority; 1:SiG Signal priority
     .buzzer_sw.setval = 0,  //Buzzer; 0:OFF; 1:ON
     .opl_not.setval = 0,    //Attendant exclusion; 0:OFF; 1:ON
-    .more_led.setval = 0,   //Multi-chip LED; 0:OFF; 1:ON
+    .H_4VH.setval = 0,   //Multi-chip LED; 0:OFF; 1:ON
     .usart_baud.setval = 1  //RS-232;baud 0:9600; 1:19200; 2:38400
 };
 
@@ -92,8 +94,29 @@ void Init_uvch(void)
 
 void Initial_poweron_state(void)
 {
-    Set_Mode = Initial_ModeSet;
-    Set_Mode_Cache = Initial_ModeSet;
+    u8 ki = 0;
+    eeprom_read_parameter();
+    for(ki = 0; ki < CHNUM; ki++)
+    {
+        if(PHY_CH[ki].SetLevel > 100 || PHY_CH[ki].SetTime > TIME_COUNT_MAX 
+           || Set_Mode.ext_input.setval > 2 || Set_Mode.usart_baud.setval > 2
+           || Set_Mode.trg_pri.setval > 2 || Set_Mode.buzzer_sw.setval > 2
+           || Set_Mode.opl_not.setval > 2 || Set_Mode.H_4VH.setval > 2)
+        {
+            Set_Mode = Initial_ModeSet;
+            Set_Mode_Cache = Initial_ModeSet;
+            PHY_CH[0].SetLevel = 0;
+            PHY_CH[1].SetLevel = 0;
+            PHY_CH[2].SetLevel = 0;
+            PHY_CH[3].SetLevel = 0;
+            PHY_CH[0].SetTime = 0;
+            PHY_CH[1].SetTime = 0;
+            PHY_CH[2].SetTime = 0;
+            PHY_CH[3].SetTime = 0;
+            break;
+        }
+    }
+    Bueezr_Config(200,100,3);
     Init_uvch();
     TM1639_Display_UVLED_Char(DISPLAY_888);
     PHY_Light_ModeLED(LED_ALL_ON);
@@ -105,28 +128,36 @@ void Initial_poweron_state(void)
     wait_ms(1000);
     Initial_UVLed_CheckIn();
     PHY_Light_ModeLED(LED_RUN_MODE);
-    //PHY_UVLed_Select(run_ch);
 }
 
 void Initial_UVLed_CheckIn(void)
 {
-    u8 ch = 0;
+    u8 ch = 0,chnum = CHNUM;
     UVCh_Check.b0 = CH1_CHECK1_IN;
     UVCh_Check.b1 = CH1_CHECK2_IN;
     UVCh_Check.b2 = CH2_CHECK1_IN;
     UVCh_Check.b3 = CH2_CHECK2_IN;
-    UVCh_Check.b4 = CH3_CHECK1_IN;
-    UVCh_Check.b5 = CH3_CHECK2_IN;
-    UVCh_Check.b6 = CH4_CHECK1_IN;
-    UVCh_Check.b7 = CH4_CHECK2_IN;
-
-    for(ch = 0; ch < CHNUM; ch++)
+    if(Set_Mode.H_4VH.setval == 0)
+    {
+        UVCh_Check.b4 = CH3_CHECK1_IN;
+        UVCh_Check.b5 = CH3_CHECK2_IN;
+        UVCh_Check.b6 = CH4_CHECK1_IN;
+        UVCh_Check.b7 = CH4_CHECK2_IN;
+    }
+    else 
+    {
+        chnum = 2;
+        PHY_CH[2].Error_Connect = 1;
+        PHY_CH[3].Error_Connect = 1;
+    }
+    
+    for(ch = 0; ch < chnum; ch++)
     {
         if(((UVCh_Check.Flag >> (ch*2)) & CHECK_NONE) == CHECK_NONE)
         {
             PHY_CH[ch].Error_Connect = 1;
         }
-        else if(run_ch == 1) run_ch = ch+1;
+        else if(run_ch == 0) run_ch = ch+1;
     }
     if(_check_uvled_connect_err() == 0x0F) 
     {

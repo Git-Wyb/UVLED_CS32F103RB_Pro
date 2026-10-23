@@ -81,6 +81,7 @@ typedef enum
     DISPLAY_Ld3,
     DISPLAY_Ld4,
     DISPLAY_ERR,
+    DISPLAY_000,
     THE_END
 }DISPLAY_ENUM;
 

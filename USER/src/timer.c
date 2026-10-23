@@ -88,19 +88,14 @@ void TIM3_IRQHandler(void)
         if(time_keyscan) time_keyscan--;
         if(time_adc_conv) time_adc_conv--;
         if(flag_adc_en && time_adc_wait) time_adc_wait--;
+        if(time_display_refresh) time_display_refresh--;
         time_10ms++;
         if(time_10ms >= 10)
         {
             time_10ms = 0;
             EXT_Input_Scan();
         }
-        
-        time_100ms++;
-        if(time_100ms >= 100)
-        {
-            time_100ms = 0;
-            _timer_uvon_scan();
-        }
+        _timer_uvon_scan();
         _Bueezr_Handle();
     }
 }
@@ -230,25 +225,41 @@ void _timer_uvon_scan(void)
     u8 ch = 0;
     if(_check_uvled_sta())
     {
-        if(time_allch < TIME_COUNT_MAX) time_allch++;
+        time_100ms++;
+        if(time_100ms >= 100)
+        {
+            time_100ms = 0;
+            if(time_allch < TIME_COUNT_MAX) time_allch++;
+        }
     }
+    
     for(ch = 0; ch < CHNUM; ch++)
     {
         if(PHY_CH[ch].Uvon)
         {
-            if(Time_uvch[ch].timer < TIME_COUNT_MAX) Time_uvch[ch].timer++;
-        }
-        if(PHY_CH[ch].Uvledon.timer && PHY_CH[ch].Uvon) 
-        {
-            PHY_CH[ch].Uvledon.timer--;
-            if(PHY_CH[ch].Uvledon.timer == 0)
+            Time_uvch[ch].timer++;
+            if(Time_uvch[ch].timer >= 100)
             {
-                PHY_CH[ch].Uvledon.flag_off = 1;
-                PHY_Uvled_PwmSwitch(ch,0);
-                PHY_CH[ch].Uvon = 0;
+                Time_uvch[ch].timer = 0;
+                if(PHY_CH[ch].Ontime < TIME_COUNT_MAX) PHY_CH[ch].Ontime++;
+                
+                PHY_CH[ch].pCH.CumulTime++;
+                if(PHY_CH[ch].Uvledon.timer) 
+                {
+                    PHY_CH[ch].Uvledon.timer--;
+                    if(PHY_CH[ch].Uvledon.timer == 0)
+                    {
+                        PHY_CH[ch].Uvledon.flag_off = 1;
+                        PHY_CH[ch].flag_ext_type = 0;
+                        PHY_CH[ch].flag_ext_uvon = 0;
+                        ExtIn_Flag.Byte &= ~(0x01 << ch); //Clear external channel input flag
+                        PHY_Uvled_PwmSwitch(ch,0);
+                    }
+                }
             }
         }
-    } 
+        else Time_uvch[ch].timer = 0;
+    }
 }
 
 u16 arr_period = 0;
@@ -358,9 +369,9 @@ void UV_LED_Switch(void)
             }
             else //uv led on
             {
-                if(PHY_CH[channel].Level == 100) 
+                if(PHY_CH[channel].SetLevel == 100) 
                 {
-                    timer1_channel_gpiomode(channel,1,PHY_CH[channel].Level);
+                    timer1_channel_gpiomode(channel,1,PHY_CH[channel].SetLevel);
                 }
                 else
                 {
@@ -384,10 +395,10 @@ void UV_LED_PwmSet(u8 channel, u8 pwm)
     
     if(channel == UVLED_CH_ALL)
     {
-        PHY_CH[TIM_CHANNEL_1].Level = pwm;
-        PHY_CH[TIM_CHANNEL_2].Level = pwm;
-        PHY_CH[TIM_CHANNEL_3].Level = pwm;
-        PHY_CH[TIM_CHANNEL_4].Level = pwm;
+        PHY_CH[TIM_CHANNEL_1].SetLevel = pwm;
+        PHY_CH[TIM_CHANNEL_2].SetLevel = pwm;
+        PHY_CH[TIM_CHANNEL_3].SetLevel = pwm;
+        PHY_CH[TIM_CHANNEL_4].SetLevel = pwm;
         TIM1->CHXCCVAL[TIM_CHANNEL_1] = Freq50k_level_buff[pwm];
         TIM1->CHXCCVAL[TIM_CHANNEL_2] = Freq50k_level_buff[pwm];
         TIM1->CHXCCVAL[TIM_CHANNEL_3] = Freq50k_level_buff[pwm];
@@ -395,9 +406,9 @@ void UV_LED_PwmSet(u8 channel, u8 pwm)
     }
     else
     {
-        PHY_CH[channel].Level = pwm;
+        PHY_CH[channel].SetLevel = pwm;
         TIM1->CHXCCVAL[channel] = Freq50k_level_buff[pwm];
-        SEL_CH.Level = pwm;
+        SEL_CH.SetLevel = pwm;
     }
 }
 

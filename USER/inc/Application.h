@@ -24,8 +24,8 @@ void menuset_handle(u8 type,u8 set,u8 opt);
 void PHY_Mode_Switch(MODE mode);
 void PHY_Light_ModeLED(LED_ENUM mode);
 void _set_ch_temporary_param(u8 ch);
-void display_uvled_time(u16 time);
-void dispaly_uvled_real_time(u8 ch);
+void display_uvled_time(u16 time,u8 poi);
+void dispaly_uvled_real_time(u8 runch);
 void PHY_Light_ErrorLED(u8 ch, u8 onoff);
 void PHY_Light_UvonLED(u8 ch, u8 onoff);
 void PHY_CH_Error_Display(u8 ch);
@@ -39,5 +39,6 @@ void Ext_Trg4_Scan(void);
 void EXT_Input_Scan(void);
 void PHY_Ext_Uvled_Handle(void);
 void _clear_ExtInFlag(void);
+void PHY_PowerOff_Handle(void);
 
 #endif

@@ -18,6 +18,21 @@ void Init_Usart1(u32 baud)
     usart_config_t ptr_usart;
     nvic_init_t nvic_config_struct;
     
+    switch(Set_Mode.usart_baud.setval)
+    {
+        case 0:
+            baud = 9600;
+            break;
+        case 1:
+            baud = 19200;
+            break;
+        case 2:
+            baud = 38400;
+            break;
+        default:
+            baud = 19200;
+            break;
+    }
     /* Enable clocks. */
     __RCU_APB2_CLK_ENABLE(RCU_APB2_PERI_GPIOB);
     __RCU_APB2_CLK_ENABLE(RCU_APB2_PERI_USART1);

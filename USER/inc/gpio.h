@@ -35,6 +35,8 @@
 #define EXT_UVON_OUT(x)  GPIOx_OUT(GPIOC,GPIO_PIN_8,x)  /* As long as there is a channel for outputting, it will output.*/
 #define EXT_ERROR_OUT(x) GPIOx_OUT(GPIOC,GPIO_PIN_7,x)  /* If an error occurs in this device, the output */
 
+#define Poweroff_Release() __GPIO_PIN_RESET(GPIOC,GPIO_PIN_13);
+
 void Init_Gpio(void);
 
 

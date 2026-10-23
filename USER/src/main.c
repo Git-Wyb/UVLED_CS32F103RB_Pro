@@ -19,24 +19,23 @@ void Send_Logo(void);
 void TestMode_Key_Handle(void);
 void TestMode_current_error_handle(void);
 void test_run_mode(void);
-
-u8 pcnt = 0;
-u8 red = 0xAA;
-u8 wbuf[10] = {11,12,13,14,15,16,17,18,19,20};
-u8 rbuf[10] = {0};
 void test_chuvled_out(void);
+u8 pcnt = 0;
+
 int main(void)
 {
     Init_FWDT();
     Init_Gpio();
     Init_Timer1(); //f=50k
     Init_Timer3();
-    Init_Usart1(19200);
+    Init_Adc();
     Init_TM1639();
     SoftI2C_Init();
     Test_Mode_Handle();
     Initial_poweron_state();
+    Init_Usart1(19200);
     //while(1);
+
     while(1)
     {
         FWDT_Clear();
@@ -47,9 +46,10 @@ int main(void)
             Key_Handle();
             PHY_UVLed_Connect_Check();
         }
-        //uvled_current_detection();
         PHY_UvLed_WaitOff();
         uvled_current_error_handle();
+        dispaly_uvled_real_time(run_ch);
+        PHY_PowerOff_Handle();
         Send_Logo();
     }
 }
@@ -59,7 +59,7 @@ void Send_Logo(void)
     if(flag_rx_done == 1)
     {
         flag_rx_done = 0;
-        printf("\r\n2026.10.16,Soft Version V0.06\r\n");
+        printf("\r\nHOYA UV-LED Soft Version V0.07 2026.10.23\r\n");
     }
 }
 
@@ -277,6 +277,15 @@ void test_232(void)
             {
                 TM1639_Display_UVLED_Char(DISPLAY_ERR);
             }
+            PHY_CH[0].pCH.CumulTime = 0;
+            PHY_CH[1].pCH.CumulTime = 0;
+            PHY_CH[2].pCH.CumulTime = 0;
+            PHY_CH[3].pCH.CumulTime = 0;
+            PHY_CH[0].flag_update_cumutime = 1;
+            PHY_CH[1].flag_update_cumutime = 1;
+            PHY_CH[2].flag_update_cumutime = 1;
+            PHY_CH[3].flag_update_cumutime = 1;
+            eeprom_save_parameter(SAVE_CUMUTIME);
         }
     }
 }

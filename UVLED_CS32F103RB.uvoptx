@@ -153,47 +153,47 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>PHY_CH[0].Current,0x0A</ItemText>
+          <ItemText>Low_Valtage,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>PHY_CH[1].Current,0x0A</ItemText>
+          <ItemText>PHY_CH[0].Error_Curr</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>PHY_CH[2].Current,0x0A</ItemText>
+          <ItemText>PHY_CH[1].Error_Curr</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>PHY_CH[3].Current,0x0A</ItemText>
+          <ItemText>PHY_CH[2].Error_Curr</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ExtIn_Now.Trg1</ItemText>
+          <ItemText>PHY_CH[3].Error_Curr</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>PHY_CH[0],0x0A</ItemText>
+          <ItemText>PHY_CH[0].undercurr_cnt,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>PHY_CH[1],0x0A</ItemText>
+          <ItemText>PHY_CH[0].Current,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>PHY_CH[2],0x0A</ItemText>
+          <ItemText>PHY_CH[1].Current</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>PHY_CH[3],0x0A</ItemText>
+          <ItemText>PHY_CH[3].Current</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
@@ -219,6 +219,11 @@
           <count>13</count>
           <WinNumber>1</WinNumber>
           <ItemText>rx_buf</ItemText>
+        </Ww>
+        <Ww>
+          <count>14</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>chtime,0x0A</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>

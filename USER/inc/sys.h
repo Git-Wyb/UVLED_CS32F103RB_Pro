@@ -26,10 +26,18 @@ typedef enum
 {
     RUN_MODE = 0,
     SETTING_MODE,
+    MH_MODE_SWITCH,
     MENU_MODE,
     HOUR_MODE,
     MENU_MODE_SET
 }MODE;
+
+typedef enum
+{
+    SAVE_CUMUTIME = 0,
+    SAVE_LEVTIME,
+    SAVE_PARAMETER
+}EESAVE_TYPE;
 
 typedef struct{
     u16 time_on;
@@ -46,7 +54,7 @@ typedef struct{
     Setting_Stu trg_pri;     //TRG Priority; 0:EIN Time priority; 1:SiG Signal priority
     Setting_Stu buzzer_sw;   //Buzzer; 0:OFF; 1:ON
     Setting_Stu opl_not;     //Attendant exclusion; 0:OFF; 1:ON
-    Setting_Stu more_led;    //Multi-chip LED; 0:OFF; 1:ON
+    Setting_Stu H_4VH;    //Multi-chip LED; 0:OFF; 1:ON
     Setting_Stu usart_baud;  //RS-232;baud 0:9600; 1:19200; 2:38400
 }Proj_Stu;
 
@@ -84,12 +92,12 @@ typedef union{
     u8 Byte;
     struct
     {
-        u8 Trg : 1;
-        u8 Emg : 1;
         u8 Trg1 : 1;
         u8 Trg2 : 1;
         u8 Trg3 : 1;
         u8 Trg4 : 1;
+        u8 Trg : 1;
+        u8 Emg : 1;
         u8 b6 : 1;
         u8 b7 : 1;
     };
@@ -109,13 +117,27 @@ typedef struct{
     u8  flag_off;
 }CH_UVON;
 
+typedef union{
+    u32 CumulTime;
+    struct
+    {
+        u8 ctimbyte0;
+        u8 ctimbyte1;
+        u8 ctimbyte2;
+        u8 ctimbyte3;
+    };
+}CUMTIMESTU;
+
 typedef struct{
     NUMSTU Cumulative_Time;
     CH_UVON Uvledon;
+    CUMTIMESTU pCH;
     u8 Uvch;
     u16 SetTime; //max=9990//9990*100ms=999s
-    u32 CumulTime;
-    u8 Level;
+    u16 ReadTime; //eeprom value
+    u16 Ontime;
+    u8 SetLevel;
+    u8 ReadLevel;
     u8 Uvon;
     u8 Option;
     u8 Ready;
@@ -128,6 +150,7 @@ typedef struct{
     u8 overcurr_cnt;
     u8 flag_ext_type;
     u8 flag_ext_uvon;
+    u8 flag_update_cumutime;
 }CH_STU;
 
 typedef enum{
@@ -161,6 +184,8 @@ typedef enum{
 #define flag_err_emg       Flag1.b7
 
 #define flag_extlevel_on   Flag2.b0
+#define flag_low_voltage   Flag2.b1
+#define flag_save_levtime  Flag2.b2
 
 extern BaseFlagStu Flag0;
 extern BaseFlagStu Flag1;
@@ -199,6 +224,7 @@ extern u16 time_display_cnt;
 extern EXTINSTU ExtIn_Now;
 extern EXTINSTU ExtIn_Flag;
 extern u8 Err_Emg;
+extern u16 time_display_refresh;
 
 void Init_FWDT(void);
 void FWDT_Clear(void);

@@ -40,6 +40,9 @@
 #define SDA_L()   __GPIO_PIN_RESET(EE_SDA_GPIO, EE_SDA_PIN)
 #define SDA_READ() __GPIO_INPUT_PIN_GET(EE_SDA_GPIO, EE_SDA_PIN)
 
+u16 addrbuff_setLevtime[4] = {ADDR_CH1_SetLevTime,ADDR_CH2_SetLevTime,ADDR_CH3_SetLevTime,ADDR_CH4_SetLevTime};
+u16 addrbuff_cumutime[4] = {ADDR_CH1_CumulTime,ADDR_CH2_CumulTime,ADDR_CH3_CumulTime,ADDR_CH4_CumulTime};
+
 /* 半周期延时 ~5us (约 100kHz), 72MHz 下粗略循环 */
 static void i2c_delay(void)
 {
@@ -857,3 +860,62 @@ void ZD24C08A_Read(uint16_t addr,
 
     SoftI2C_Stop();
 }
+
+u8 sbuff[10] = {0};
+void eeprom_save_parameter(EESAVE_TYPE ptype)
+{
+    u8 si = 0;
+    switch(ptype)
+    {
+        case SAVE_CUMUTIME:
+            for(si = 0; si < 4; si++)
+            {
+                if(PHY_CH[si].flag_update_cumutime)
+                {
+                    ZD24C08A_PageWrite(addrbuff_cumutime[si],&PHY_CH[si].pCH.ctimbyte0,CumulTime_Length);
+                    PHY_CH[si].flag_update_cumutime = 0;
+                }
+            }
+            break;
+        
+        case SAVE_LEVTIME:
+            for(si = 0; si < 4; si++)
+            {
+                if(PHY_CH[si].SetLevel != PHY_CH[si].ReadLevel || PHY_CH[si].SetTime != PHY_CH[si].ReadTime)
+                {
+                    sbuff[0] = PHY_CH[si].SetLevel;
+                    sbuff[1] = 0;
+                    sbuff[2] = (PHY_CH[si].SetTime) & 0xFF;
+                    sbuff[3] = (PHY_CH[si].SetTime >> 8) & 0xFF;
+                    ZD24C08A_PageWrite(addrbuff_setLevtime[si],sbuff,SetLevTime_Length);
+                }
+            }
+            break;
+            
+        case SAVE_PARAMETER:
+            ZD24C08A_PageWrite(ADDR_SET_Parameter,&Set_Mode.ext_input.setval,6);
+            break;
+    }
+}
+
+void eeprom_read_parameter(void)
+{
+    u8 si = 0;
+    
+    ZD24C08A_Read(ADDR_CH1_CumulTime,&PHY_CH[0].pCH.ctimbyte0,CumulTime_Length);
+    ZD24C08A_Read(ADDR_CH2_CumulTime,&PHY_CH[1].pCH.ctimbyte0,CumulTime_Length);
+    ZD24C08A_Read(ADDR_CH3_CumulTime,&PHY_CH[2].pCH.ctimbyte0,CumulTime_Length);
+    ZD24C08A_Read(ADDR_CH4_CumulTime,&PHY_CH[3].pCH.ctimbyte0,CumulTime_Length);
+    
+    for(si = 0; si < 4; si++)
+    {
+        ZD24C08A_Read(addrbuff_setLevtime[si],sbuff,SetLevTime_Length);
+        PHY_CH[si].SetLevel = sbuff[0];
+        PHY_CH[si].SetTime = sbuff[2] | (sbuff[3] << 8);
+        PHY_CH[si].ReadLevel = PHY_CH[si].SetLevel;
+        PHY_CH[si].ReadTime = PHY_CH[si].SetTime;
+    }
+    
+    ZD24C08A_Read(ADDR_SET_Parameter,&Set_Mode.ext_input.setval,6);
+}
+

@@ -8,9 +8,10 @@
 #include "TM1639.h"
 #include "timer.h"
 #include "UVLED.h"
+#include "eeprom.h"
 
 #define ADC1_OUTDAT_REG_ADDRESS    0x40012440
-
+void ADC_nvic_config(void);
 static void adc1_dma_config(void);
 static volatile uint16_t adc_conv[6];
 u16 adc_ch1 = 0;
@@ -26,6 +27,9 @@ u8 uvled_adc_ch[4] = {ADC_CHANNEL_1,ADC_CHANNEL_2,ADC_CHANNEL_13,ADC_CHANNEL_11}
 void Init_Adc(void)
 {
     adc_cfg_t adc_cfg;
+    uint16_t v_high = ((3300 * 0xFFF) / 3300); //No need for a high threshold trigger; simply set it to the maximum value.
+    uint16_t v_low = ((1600 * 0xFFF) / 3300);   //Low voltage trigger 1.6V
+    
     adc1_dma_config();
     
     __RCU_APB2_CLK_ENABLE(RCU_APB2_PERI_GPIOA);
@@ -56,6 +60,17 @@ void Init_Adc(void)
     adc_regular_channel_config(ADC1, uvled_adc_ch[1], ADC_SAMPLE_TIME_55_5_CYCLE, 3);//Regular Group Conversion 3(adc_conv[2])
     adc_regular_channel_config(ADC1, uvled_adc_ch[2], ADC_SAMPLE_TIME_55_5_CYCLE, 4);//Regular Group Conversion 4(adc_conv[3])
     adc_regular_channel_config(ADC1, uvled_adc_ch[3], ADC_SAMPLE_TIME_55_5_CYCLE, 5);//Regular Group Conversion 5(adc_conv[4])
+    
+    /* Configure high and low analog watchdog thresholds. */
+    adc_analog_wdt_threshold_set(ADC1, v_high, v_low);
+    /* Configure channel 0 as the single analog watchdog guarded channel. */
+    adc_analog_channel_config(ADC1, ADC_CHANNEL_0);
+    /* Enable analog watchdog on one regular channel. */
+    adc_analog_wdt_config(ADC1, ADC_ANALOG_WDT_SINGLE_REG);
+     /* Enable analog watchdog interrupt. */
+    __ADC_INTR_ENABLE(ADC1, ADC_IT_ANALOG_WDT);
+    
+    ADC_nvic_config();
 
     __ADC_DMA_ENABLE(ADC1);
     __DMA_ENABLE(DMA1_CHANNEL1);
@@ -75,7 +90,27 @@ void Init_Adc(void)
     __ADC_REG_CONV_START(ADC1);
 }
 
-#if 1
+void ADC_nvic_config(void)
+{
+    nvic_init_t ptr_nvic;
+    
+    /* Configure and enable ADC interrupt. */
+    ptr_nvic.nvic_irqchannel = IRQn_ADC1_2;
+    ptr_nvic.nvic_irq_enable = ENABLE;
+    ptr_nvic.nvic_irq_pre_priority = 0;
+    ptr_nvic.nvic_irq_sub_priority = 1;
+    nvic_init(&ptr_nvic);
+}
+
+void ADC1_2_IRQHandler(void)
+{
+    if(__ADC_FLAG_STATUS_GET(ADC1,ADC_FLAG_ANALOG_WDT) == SET)
+    {
+        __ADC_FLAG_CLEAR(ADC1, ADC_FLAG_ANALOG_WDT);
+        flag_low_voltage = 1;
+    }
+}
+
 static void adc1_dma_config(void)
 {
     dma_config_t  dma_configStruct;
@@ -106,15 +141,18 @@ static void adc1_dma_config(void)
     nvic_init(&nvic_config_struct);
     __DMA_INTR_ENABLE(DMA1_CHANNEL1,DMA_INTR_CMP);
 }
-#endif
 
+u8 ich = 0,vy = 0,vx = 0;
 void _UVLED_CurrCheck_Enable(void)
 {
     if(flag_adc_en == 0)
     {
         flag_adc_en = 1;
-        Init_Adc();
+        //__ADC_DMA_ENABLE(ADC1);
+        //__DMA_ENABLE(DMA1_CHANNEL1);
     }
+    ich = 0; vy = 0; vx = 0;
+    flag_adc_ok = 0;
     time_adc_wait = 50;
 }
     
@@ -124,24 +162,19 @@ void _UVLED_CurrCheck_Disable(void)
     {
         flag_adc_en = 0;
         time_adc_wait = 0;
-        __ADC_REG_CONV_STOP(ADC1);
-        __ADC_DISABLE(ADC1);
-        __ADC_DMA_DISABLE(ADC1);
-        __DMA_INTR_DISABLE(DMA1_CHANNEL1,DMA_INTR_CMP);
-        __DMA_DISABLE(DMA1_CHANNEL1);
+        flag_adc_ok = 0;
+        //__ADC_DMA_DISABLE(ADC1);
+        //__DMA_DISABLE(DMA1_CHANNEL1);
     }
 }
 
-u8 ich = 0;
-u8 vy = 0;
-u8 vx = 0;
 void DMA1_Channel1_IRQHandler(void)
 {
     if(__DMA1_FLAG_STATUS_GET(DMA1_FLAG_CMP1) == SET)
     {
         __DMA1_FLAG_CLEAR(DMA1_FLAG_CMP1);
         
-        if(time_adc_wait == 0)
+        if(time_adc_wait == 0 && flag_adc_en)
         {
             for(vx = 0; vx < 5; vx++)
             {
@@ -154,6 +187,7 @@ void DMA1_Channel1_IRQHandler(void)
                 flag_adc_ok = 1;
             }
         }
+
         if(flag_adc_ok == 1)
         {
             flag_adc_ok = 0;
@@ -162,12 +196,12 @@ void DMA1_Channel1_IRQHandler(void)
             PHY_CH[1].Current = (data_average_calcul(&Adc_Value_Buff[2][0],7) * 3300) / 4095;
             PHY_CH[2].Current = (data_average_calcul(&Adc_Value_Buff[3][0],7) * 3300) / 4095;
             PHY_CH[3].Current = (data_average_calcul(&Adc_Value_Buff[4][0],7) * 3300) / 4095;
-
+#if 1
             for(ich = 0; ich < 4; ich++)
             {
                 if(PHY_CH[ich].Uvon == 1)
                 {
-                    if(PHY_CH[ich].Level != 0 && PHY_CH[ich].Error_Connect == 0 && PHY_CH[ich].Error_Curr == 0)
+                    if(PHY_CH[ich].SetLevel != 0 && PHY_CH[ich].Error_Connect == 0 && PHY_CH[ich].Error_Curr == 0)
                     {
                         if(PHY_CH[ich].Current < 10) 
                         {
@@ -177,8 +211,8 @@ void DMA1_Channel1_IRQHandler(void)
                             {
                                 PHY_CH[ich].undercurr_cnt = 0;
                                 PHY_CH[ich].Error_Curr = ERR_Ld2;
+                                ExtIn_Flag.Byte &= ~(0x01 << ich); //Clear external channel input flag
                                 PHY_Uvled_PwmSwitch(ich,0);
-                                PHY_CH[ich].Uvon = 0;
                             }
                         }
                         else if(PHY_CH[ich].Current > 2400)
@@ -189,8 +223,8 @@ void DMA1_Channel1_IRQHandler(void)
                             {
                                 PHY_CH[ich].overcurr_cnt = 0;
                                 PHY_CH[ich].Error_Curr = ERR_Ld1;
+                                ExtIn_Flag.Byte &= ~(0x01 << ich); //Clear external channel input flag
                                 PHY_Uvled_PwmSwitch(ich,0);
-                                PHY_CH[ich].Uvon = 0;
                             }
                         }
                         else
@@ -211,26 +245,7 @@ void DMA1_Channel1_IRQHandler(void)
                     PHY_CH[ich].overcurr_cnt = 0;
                 }
             }
-        }
-    }
-}
-
-void adc_dma_value(void)
-{                 // Clear DMA CMP1 flag.
-    if(__DMA1_FLAG_STATUS_GET(DMA1_FLAG_CMP1) == SET)
-    {
-        __DMA1_FLAG_CLEAR(DMA1_FLAG_CMP1);
-        
-        for(vx = 0; vx < 5; vx++)
-        {
-            Adc_Value_Buff[vx][vy] = adc_conv[vx];
-        }
-        vy++;
-        if(vy >= 7)
-        {
-            vy = 0;
-            __ADC_REG_CONV_STOP(ADC1);
-            flag_adc_ok = 1;
+#endif
         }
     }
 }
@@ -279,27 +294,6 @@ void uvled_current_error_handle(void)
         {
             PHY_UvLed_Off();
         }
-    }
-    if(_check_uvled_sta() == 0)
-    {
-        flag_extall_on = 0;
-        flag_extlevel_on = 0;
-        _UVLED_CurrCheck_Disable();
-    }
-}
-
-void uvled_current_detection(void)
-{
-//    u8 i = 0;
-    if(flag_adc_ok == 1)
-    {
-        flag_adc_ok = 0;
-        if(Low_Valtage <= 1600)
-        {
-            gpio_mode_config(GPIOC, GPIO_PIN_13, GPIO_MODE_OUT_PP(GPIO_SPEED_HIGH));
-            __GPIO_PIN_RESET(GPIOC,GPIO_PIN_13);
-        }
-        //__ADC_REG_CONV_START(ADC1);
     }
 }
 

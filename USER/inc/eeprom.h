@@ -42,6 +42,23 @@ void EE_Init(void);
 #define TP24C02_ADDR_W    0xA0
 #define TP24C02_ADDR_R    0xA1
 
+#define CumulTime_Length        4
+#define SetLevTime_Length       4
+
+#define ADDR_CH1_CumulTime      0x00
+#define ADDR_CH2_CumulTime      (ADDR_CH1_CumulTime + CumulTime_Length)
+#define ADDR_CH3_CumulTime      (ADDR_CH2_CumulTime + CumulTime_Length)
+#define ADDR_CH4_CumulTime      (ADDR_CH3_CumulTime + CumulTime_Length)
+#define ADDR_CH1_SetLevTime     (ADDR_CH4_CumulTime + CumulTime_Length)
+#define ADDR_CH2_SetLevTime     (ADDR_CH1_SetLevTime + SetLevTime_Length)
+#define ADDR_CH3_SetLevTime     (ADDR_CH2_SetLevTime + SetLevTime_Length)
+#define ADDR_CH4_SetLevTime     (ADDR_CH3_SetLevTime + SetLevTime_Length)
+#define ADDR_SET_Parameter      (ADDR_CH4_SetLevTime + SetLevTime_Length)
+#define ADDR_H1VH_Parameter     (ADDR_SET_Parameter  + 16)
+#define ADDR_H2VH_Parameter     (ADDR_H1VH_Parameter + 202)
+#define ADDR_H4VH_Parameter     (ADDR_H2VH_Parameter + 202)
+#define ADDR_Reserved           (ADDR_H4VH_Parameter + 202)
+
 uint8_t TP24C02_WriteByte(uint8_t addr, uint8_t data);
 uint8_t TP24C02_ReadByte(uint8_t addr);
 
@@ -65,6 +82,9 @@ uint8_t ZD24C08A_WriteByte(uint16_t addr,
                            uint8_t data);
 
 uint8_t ZD24C08A_ReadByte(uint16_t addr);
+
+void eeprom_save_parameter(EESAVE_TYPE ptype);
+void eeprom_read_parameter(void);
 
 #endif
 
