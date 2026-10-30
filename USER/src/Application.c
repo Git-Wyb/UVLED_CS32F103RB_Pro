@@ -21,7 +21,8 @@ CH1  CH2  CH3  CH4  CH
 
           V         UV ON
 */
-
+u8 *p_param_set[7] = {NULL,&Set_Mode_Cache.ext_input.setval, &Set_Mode_Cache.trg_pri.setval, &Set_Mode_Cache.buzzer_sw.setval,
+                           &Set_Mode_Cache.opl_not.setval,   &Set_Mode_Cache.H_4VH.setval,   &Set_Mode_Cache.usart_baud.setval};
 u8 upcnt = 0;
 u8 downcnt = 0;
 u8 setcnt = 0;
@@ -42,7 +43,7 @@ u8 moden = 0;
 u8 _scnt = 0;
 u8 m_mode_cnt = 0;
 u8 _bf_cnt = 0;
-u8 _sec_menu_cnt = 0;
+u8 _set_menu_cnt = 0;
 u8 _mcnt = 0;
 u8 _hcnt = 0;
 u8 _menuset_cnt = 0;
@@ -70,9 +71,7 @@ void Key_Handle(void)
     Key_Ch_Scan();
     Key_Mode_Scan();
     uvled_ready_check();
-#if (PRO_MODE == 1)
     PHY_UvLed_Mode_Handle();
-#endif
     PHY_Ext_Uvled_Handle();
     PHY_CH_Error_Display(run_ch-1);
 }
@@ -296,7 +295,7 @@ void PHY_UvLed_Mode_Handle(void)
                 run_ch++;
                 if(run_ch > CHNUM+1) run_ch = 1;
                 if(_check_uvled_errLd123() && run_ch==CHNUM+1) run_ch = 1; //Error occurred; selecting "all" is not allowed.
-                PHY_UVLed_Select(run_ch);
+                PHY_UVLed_Select(run_ch,1);
                 time_display_refresh = 500;
                 //PHY_Light_ModeLED(LED_MODE_OFF);
             }
@@ -350,7 +349,7 @@ void PHY_UvLed_Mode_Handle(void)
                     rs_mode = MH_MODE_SWITCH;
                 }
             }
-            else if(Set_Mode.opl_not.setval)
+            else if(Set_Mode.opl_not.setval) //OPL ON
             {
                 TM1639_Display_UVLED_Char(DISPLAY_oPL);
                 if(KeyStaFlag.Set)
@@ -364,7 +363,7 @@ void PHY_UvLed_Mode_Handle(void)
                 _clear_KeyStaFlag();
                 run_ch++;
                 if(run_ch > CHNUM) run_ch = 1;
-                PHY_UVLed_Select(run_ch);
+                PHY_UVLed_Select(run_ch,1);
                 PHY_Light_ModeLED(LED_MODE_OFF);
                 PHY_Light_ModeLED(LED_CH_OFF);
             }
@@ -529,6 +528,8 @@ void PHY_UvLed_Mode_Handle(void)
                             _bf_cnt = 0;
                             Set_Mode = Initial_ModeSet;
                             Set_Mode_Cache = Set_Mode;
+                            m_mode_cnt = SET_EIN;
+                            TM1639_Display_UVLED_Char(DISPLAY_Ein);
                             _clear_KeyStaFlag();
                             eeprom_save_parameter(SAVE_PARAMETER);
                             Bueezr_Config(1000,0,0);
@@ -539,29 +540,30 @@ void PHY_UvLed_Mode_Handle(void)
                         _clear_KeyStaFlag();
                         m_mode_cnt++;
                         if(m_mode_cnt > 6) m_mode_cnt = 1;
-                        menuset_handle(0,m_mode_cnt,0);
+                        menuset_handle(rs_mode,m_mode_cnt,0);
                     }
                     else if(KeyStaFlag.Fw)
                     {
                         _clear_KeyStaFlag();
                         if(m_mode_cnt != 0) m_mode_cnt--;
                         if(m_mode_cnt == 0) m_mode_cnt = 6;
-                        menuset_handle(0,m_mode_cnt,0);
+                        menuset_handle(rs_mode,m_mode_cnt,0);
                     }
                     else if(KeyStaFlag.Set)
                     {
                         _menuset_cnt++;
                         if(_menuset_cnt < 2)
                         {
-                            menuset_handle(1,m_mode_cnt,_sec_menu_cnt);
                             rs_mode = MENU_MODE_SET;
+                            _set_menu_cnt = *p_param_set[m_mode_cnt];
+                            menuset_handle(rs_mode,m_mode_cnt,_set_menu_cnt);
                         }
                         if(_menuset_cnt >= 37) //3s
                         {
                             _menuset_cnt = 0;
                             _clear_KeyStaFlag();
                             Set_Mode = Set_Mode_Cache;
-                            Init_Usart1(19200);
+                            Init_Usart1();
                             eeprom_save_parameter(SAVE_PARAMETER);
                             Bueezr_Config(1000,0,0);
                             rs_mode = SETTING_MODE;
@@ -590,7 +592,7 @@ void PHY_UvLed_Mode_Handle(void)
                                 PHY_CH[run_ch-1].pCH.CumulTime = 0;
                                 PHY_CH[run_ch-1].flag_update_cumutime = 1;
                                 eeprom_save_parameter(SAVE_CUMUTIME);
-                                display_uvled_time(0,1);
+                                TM1639_Display_UVLED_Char(DISPLAY_000);
                                 Bueezr_Config(1000,0,0);
                             }
                             _clear_KeyStaFlag();
@@ -603,31 +605,45 @@ void PHY_UvLed_Mode_Handle(void)
                         if(run_ch > CHNUM) run_ch = 1;
                         TM1639_Display_UVLED_Char((DISPLAY_ENUM)(run_ch+15));
                     }
-                    else if(KeyStaFlag.Bk)
+                    else if(KeyStaFlag.Bk) //up three positions
                     {
                         _clear_KeyStaFlag();
-                        if(PHY_CH[run_ch-1].pCH.CumulTime <= 9990) TM1639_Display_UVLED_Char(DISPLAY_000);
+                        _timecache = PHY_CH[run_ch-1].pCH.CumulTime / 36000; //hour
+                        if(_timecache <= 999) TM1639_Display_UVLED_Char(DISPLAY_H00);
                         else
                         {
-                            _timecache = PHY_CH[run_ch-1].pCH.CumulTime;
-                            //if(_timecache%10) _timecache = _timecache / 1000;
-                            //else _timecache = _timecache / 1000;
-                            display_uvled_time(_timecache,1);
+                            if(_timecache > 50000) 
+                            {
+                                _timecache = 50000;
+                                PHY_CH[run_ch-1].pCH.CumulTime = TIME_CUMUL_MAX;
+                            }
+                            
+                            if(_timecache > 20000)
+                            {
+                                _timecache = _timecache / 1000;
+                                display_cumultime_hour(_timecache,'E');
+                            }
+                            else
+                            {
+                                _timecache = _timecache / 1000;
+                                display_cumultime_hour(_timecache,'H');
+                            }
                         }
                     }
-                    else if(KeyStaFlag.Fw)
+                    else if(KeyStaFlag.Fw) //down three positions
                     {
                         _clear_KeyStaFlag();
-                        if(PHY_CH[run_ch-1].pCH.CumulTime <= 9990) display_uvled_time(PHY_CH[run_ch-1].pCH.CumulTime,1);
-                        else if(PHY_CH[run_ch-1].pCH.CumulTime <= 9999)
+                        _timecache = PHY_CH[run_ch-1].pCH.CumulTime / 36000; //hour
+                        if(_timecache <= 999) display_cumultime_hour(_timecache,0);
+                        else
                         {
-                            _timecache = PHY_CH[run_ch-1].pCH.CumulTime;
-                            //if(_timecache%10) 
-                                display_uvled_time(PHY_CH[run_ch-1].pCH.CumulTime,1); 
-                            //else
+                            if(_timecache > 50000) 
                             {
-                                _timecache = _timecache / 10000;
+                                _timecache = 50000;
+                                PHY_CH[run_ch-1].pCH.CumulTime = TIME_CUMUL_MAX;
                             }
+                            _timecache = _timecache % 1000;
+                            display_cumultime_hour(_timecache,0);
                         }
                     }
                 }
@@ -638,23 +654,23 @@ void PHY_UvLed_Mode_Handle(void)
             if(KeyStaFlag.Up)
             {
                 _clear_KeyStaFlag();
-                if(m_mode_cnt == 6 && _sec_menu_cnt < 2) _sec_menu_cnt++;
-                else if(_sec_menu_cnt < 1) _sec_menu_cnt++;
-                menuset_handle(1,m_mode_cnt,_sec_menu_cnt);
+                if(m_mode_cnt == SET_232 && _set_menu_cnt < 2) _set_menu_cnt++;
+                else if(_set_menu_cnt < 1) _set_menu_cnt++;
+                menuset_handle(rs_mode,m_mode_cnt,_set_menu_cnt);
             }
             else if(KeyStaFlag.Down)
             {
                 _clear_KeyStaFlag();
-                if(_sec_menu_cnt != 0) _sec_menu_cnt--;
-                menuset_handle(1,m_mode_cnt,_sec_menu_cnt);
+                if(_set_menu_cnt != 0) _set_menu_cnt--;
+                menuset_handle(rs_mode,m_mode_cnt,_set_menu_cnt);
             }
             else if(KeyStaFlag.Set)
             {
                 _menuset_cnt++;
                 if(_menuset_cnt < 2)
                 {
-                    menuset_handle(0,m_mode_cnt,0);
                     rs_mode = MENU_MODE;
+                    menuset_handle(rs_mode,m_mode_cnt,0);
                 }
                 if(_menuset_cnt >= 150) //3s
                 {
@@ -697,7 +713,7 @@ void PHY_Mode_Switch(MODE mode)
             else
             {
                 if(run_ch > CHNUM) run_ch = 1;
-                PHY_UVLed_Select(run_ch);
+                PHY_UVLed_Select(run_ch,1);
                 TM1639_Display_UVLED_Char((DISPLAY_ENUM)(run_ch+15));
             }
             break;
@@ -918,8 +934,8 @@ void menuset_handle(u8 type,u8 set,u8 opt)
 {
     switch(set)
     {
-        case 1:
-            if(type == 0) TM1639_Display_UVLED_Char(DISPLAY_Ein);
+        case SET_EIN:
+            if(type == MENU_MODE) TM1639_Display_UVLED_Char(DISPLAY_Ein);
             else
             {
                 if(opt == 0) 
@@ -934,8 +950,8 @@ void menuset_handle(u8 type,u8 set,u8 opt)
                 }
             }
             break;
-        case 2:
-            if(type == 0) TM1639_Display_UVLED_Char(DISPLAY_Pri);
+        case SET_PRI:
+            if(type == MENU_MODE) TM1639_Display_UVLED_Char(DISPLAY_Pri);
             else
             {
                 if(opt == 0) 
@@ -950,8 +966,8 @@ void menuset_handle(u8 type,u8 set,u8 opt)
                 }
             }
             break;
-        case 3:
-            if(type == 0) TM1639_Display_UVLED_Char(DISPLAY_bur);
+        case SET_BUR:
+            if(type == MENU_MODE) TM1639_Display_UVLED_Char(DISPLAY_bur);
             else
             {
                 if(opt == 0) 
@@ -966,8 +982,8 @@ void menuset_handle(u8 type,u8 set,u8 opt)
                 }
             }
             break;
-        case 4:
-            if(type == 0) TM1639_Display_UVLED_Char(DISPLAY_oPL);
+        case SET_OPL:
+            if(type == MENU_MODE) TM1639_Display_UVLED_Char(DISPLAY_oPL);
             else
             {
                 if(opt == 0) 
@@ -982,8 +998,8 @@ void menuset_handle(u8 type,u8 set,u8 opt)
                 }
             }
             break;
-        case 5:
-            if(type == 0) TM1639_Display_UVLED_Char(DISPLAY_4Uh);
+        case SET_4UH:
+            if(type == MENU_MODE) TM1639_Display_UVLED_Char(DISPLAY_4Uh);
             else
             {
                 if(opt == 0) 
@@ -998,8 +1014,8 @@ void menuset_handle(u8 type,u8 set,u8 opt)
                 }
             }
             break;
-        case 6:
-            if(type == 0) TM1639_Display_UVLED_Char(DISPLAY_232);
+        case SET_232:
+            if(type == MENU_MODE) TM1639_Display_UVLED_Char(DISPLAY_232);
             else
             {
                 if(opt == 0) 
@@ -1032,6 +1048,7 @@ void display_uvled_time(u16 time,u8 poi)
         if(poi) Time_stu.point1 = 1;
         else Time_stu.point1 = 0;
         Time_stu.unit = time;
+        Time_stu.point2 = 0;
     }
     else if(time <= 9)
     {
@@ -1041,6 +1058,7 @@ void display_uvled_time(u16 time,u8 poi)
         if(poi) Time_stu.point1 = 1;
         else Time_stu.point1 = 0;
         Time_stu.unit = time;
+        Time_stu.point2 = 0;
     }
     else if(time <= 99)
     {
@@ -1050,6 +1068,7 @@ void display_uvled_time(u16 time,u8 poi)
         if(poi) Time_stu.point1 = 1;
         else Time_stu.point1 = 0;
         Time_stu.unit = time % 10;
+        Time_stu.point2 = 0;
     }
     else if(time <= 999)
     {
@@ -1061,6 +1080,7 @@ void display_uvled_time(u16 time,u8 poi)
         else Time_stu.point1 = 0;
         time = time - (Time_stu.decde*10);
         Time_stu.unit = time % 10;
+        Time_stu.point2 = 0;
     }
     else if(time <= 9990)
     {
@@ -1072,8 +1092,44 @@ void display_uvled_time(u16 time,u8 poi)
         Time_stu.point1 = 0;
         time = time - (Time_stu.decde*10);
         Time_stu.unit = time;
+        Time_stu.point2 = 0;
     }
-    TM1639_DisplayUVtime(Time_stu);
+    TM1639_DisplayUVtime(Time_stu,0);
+}
+
+void display_cumultime_hour(u16 hour, u8 mchar)
+{
+    if(hour > 999) hour = 999;
+    
+    if(hour <= 9)
+    {
+        Time_stu.hundreds = 0; 
+        Time_stu.point0 = 0;
+        Time_stu.decde = 0;
+        Time_stu.point1 = 0;
+        Time_stu.unit = hour;
+        Time_stu.point2 = 0;
+    }
+    else if(hour <= 99)
+    {
+        Time_stu.hundreds = 0; //>9blank
+        Time_stu.point0 = 0;
+        Time_stu.decde = hour / 10;
+        Time_stu.point1 = 0;
+        Time_stu.unit = hour % 10;
+        Time_stu.point2 = 0;
+    }
+    else if(hour <= 999)
+    {
+        Time_stu.hundreds = hour / 100;
+        Time_stu.point0 = 0;
+        hour = hour - (Time_stu.hundreds*100);
+        Time_stu.decde = hour / 10;
+        Time_stu.point1 = 0;
+        Time_stu.unit = hour % 10;
+        Time_stu.point2 = 0;
+    }
+    TM1639_DisplayUVtime(Time_stu, mchar);
 }
 
 u16 timelast = 0;
@@ -1111,16 +1167,18 @@ void PHY_CH_Error_Display(u8 ch)
             time_display_cnt++;
             if(time_display_cnt == 35)
             {
-                TM1639_Display_UVLED_Char((DISPLAY_ENUM)(ch+16));
+                if(Err_Emg) TM1639_Display_UVLED_Char(DISPLAY_Eo1);
+                else        TM1639_Display_UVLED_Char((DISPLAY_ENUM)(ch+16));
             }
             else if(time_display_cnt == 70)
             {
                 time_display_cnt = 0;
-                if(PHY_CH[ch].Error_Connect == 1)         TM1639_Display_UVLED_Char(DISPLAY_BLANK);
-                else if(Err_Emg)                          TM1639_Display_UVLED_Char(DISPLAY_Eo1);
-                else if(PHY_CH[ch].Error_Connect == 2)    TM1639_Display_UVLED_Char(DISPLAY_Ld3);
-                else if(PHY_CH[ch].Error_Curr == ERR_Ld1) TM1639_Display_UVLED_Char(DISPLAY_Ld1);
-                else if(PHY_CH[ch].Error_Curr == ERR_Ld2) TM1639_Display_UVLED_Char(DISPLAY_Ld2);
+                if(Err_Emg)                                  TM1639_Display_UVLED_Char(DISPLAY_Eo1);
+                else if(PHY_CH[ch].Error_Connect == 1)       TM1639_Display_UVLED_Char(DISPLAY_BLANK);
+                else if(PHY_CH[ch].Error_Connect == ERR_Ld3) TM1639_Display_UVLED_Char(DISPLAY_Ld3);
+                else if(PHY_CH[ch].Error_Connect == ERR_Ld4) TM1639_Display_UVLED_Char(DISPLAY_Ld4);
+                else if(PHY_CH[ch].Error_Curr == ERR_Ld1)    TM1639_Display_UVLED_Char(DISPLAY_Ld1);
+                else if(PHY_CH[ch].Error_Curr == ERR_Ld2)    TM1639_Display_UVLED_Char(DISPLAY_Ld2);
             }
         }
     }
@@ -1129,84 +1187,99 @@ void PHY_CH_Error_Display(u8 ch)
 
 void PHY_Ext_Uvled_Handle(void)
 {
-    if(rs_mode != RUN_MODE) return;
     if(Err_Emg) return;
+    if(ExtIn_Flag.Emg)
+    {
+        _clear_ExtInFlag();
+        Err_Emg = ERR_EO1;
+        PHY_CH[0].ErrCode = ERR_EO1;
+        PHY_CH[1].ErrCode = ERR_EO1;
+        PHY_CH[2].ErrCode = ERR_EO1;
+        PHY_CH[3].ErrCode = ERR_EO1;
+        PHY_UvLed_Off();
+        if(rs_mode == RUN_MODE) TM1639_Display_UVLED_Char(DISPLAY_Eo1);
+        flag_tx_error = 1;
+    }
+    if(rs_mode != RUN_MODE) return;
+    if(_check_poweron_allch_con_err()) return;
     
     if(Set_Mode.ext_input.setval) //pulse
     {
-        if(ExtIn_Flag.Emg)
+        if(ExtIn_Flag.TrgAll)
         {
             _clear_ExtInFlag();
-            Err_Emg = ERR_Eo1;
-            PHY_UvLed_Off();
-            TM1639_Display_UVLED_Char(DISPLAY_Eo1);
-        }
-        else if(_check_poweron_allch_con_err() || Err_Emg) return;
-        else if(ExtIn_Flag.Trg)
-        {
-            _clear_ExtInFlag();
-            run_ch = 5;
-            PHY_UVLed_Select(run_ch);
-            uvled_ready_check();
-            PHY_Ext_UvLed_switch(run_ch);
+            if(flag_single_chon != 1)
+            {
+                run_ch = 5;
+                PHY_UVLed_Select(run_ch,0);
+                uvled_ready_check();
+                PHY_Ext_UvLed_switch(run_ch);
+            }
         }
         else 
         {
             if(ExtIn_Flag.Trg1 && flag_extall_on == 0)
             {
                 _clear_ExtInFlag();
-                run_ch = 1;
-                PHY_UVLed_Select(run_ch);
-                uvled_ready_check();
-                PHY_Ext_UvLed_switch(run_ch);
+                if(_check_uvled_ch_error(0) == 0)
+                {
+                    run_ch = 1;
+                    PHY_UVLed_Select(run_ch,0);
+                    uvled_ready_check();
+                    PHY_Ext_UvLed_switch(run_ch);
+                }
             }
             
             if(ExtIn_Flag.Trg2 && flag_extall_on == 0)
             {
                 _clear_ExtInFlag();
-                run_ch = 2;
-                PHY_UVLed_Select(run_ch);
-                uvled_ready_check();
-                PHY_Ext_UvLed_switch(run_ch);
+                if(_check_uvled_ch_error(1) == 0)
+                {
+                    run_ch = 2;
+                    PHY_UVLed_Select(run_ch,0);
+                    uvled_ready_check();
+                    PHY_Ext_UvLed_switch(run_ch);
+                }
             }
             
             if(ExtIn_Flag.Trg3 && flag_extall_on == 0)
             {
                 _clear_ExtInFlag();
-                run_ch = 3;
-                PHY_UVLed_Select(run_ch);
-                uvled_ready_check();
-                PHY_Ext_UvLed_switch(run_ch);
+                if(_check_uvled_ch_error(2) == 0)
+                {
+                    run_ch = 3;
+                    PHY_UVLed_Select(run_ch,0);
+                    uvled_ready_check();
+                    PHY_Ext_UvLed_switch(run_ch);
+                }
             }
             
             if(ExtIn_Flag.Trg4 && flag_extall_on == 0)
             {
                 _clear_ExtInFlag();
-                run_ch = 4;
-                PHY_UVLed_Select(run_ch);
-                uvled_ready_check();
-                PHY_Ext_UvLed_switch(run_ch);
+                if(_check_uvled_ch_error(3) == 0)
+                {
+                    run_ch = 4;
+                    PHY_UVLed_Select(run_ch,0);
+                    uvled_ready_check();
+                    PHY_Ext_UvLed_switch(run_ch);
+                }
             }
         }
     }
     else //level
     {
-        if(ExtIn_Flag.Emg)
+        if(ExtIn_Flag.TrgAll && flag_extlevel_on == 0 && flag_extall_on == 0)
         {
-            _clear_ExtInFlag();
-            Err_Emg = ERR_Eo1;
-            PHY_UvLed_Off();
-            TM1639_Display_UVLED_Char(DISPLAY_Eo1);
+            if(flag_single_chon != 1)
+            {
+                run_ch = 5;
+                PHY_UVLed_Select(run_ch,0);
+                uvled_ready_check();
+                PHY_Ext_UvLed_switch(run_ch);
+            }
         }
-        else if(_check_poweron_allch_con_err() || Err_Emg) return;
-        else if(ExtIn_Flag.Trg && flag_extlevel_on == 0 && flag_extall_on == 0)
-        {
-            run_ch = 5;
-            PHY_UVLed_Select(run_ch);
-            uvled_ready_check();
-            PHY_Ext_UvLed_switch(run_ch);
-        }
-        else if(ExtIn_Flag.Trg == 0 && flag_extlevel_on == 1 && flag_extall_on == 1)
+        else if(ExtIn_Flag.TrgAll == 0 && flag_extlevel_on == 1 && flag_extall_on == 1)
         {
             PHY_Ext_UvLed_Off();
         }
@@ -1214,11 +1287,14 @@ void PHY_Ext_Uvled_Handle(void)
         {
             if(ExtIn_Flag.Trg1 && PHY_CH[0].Uvon == 0 && PHY_CH[0].flag_ext_type == 0)
             {
-                run_ch = 1;
-                PHY_UVLed_Select(run_ch);
-                uvled_ready_check();
-                PHY_Ext_UvLed_switch(run_ch);
-                PHY_CH[0].flag_ext_type = 1;
+                if(_check_uvled_ch_error(0) == 0)
+                {
+                    run_ch = 1;
+                    PHY_UVLed_Select(run_ch,0);
+                    uvled_ready_check();
+                    PHY_Ext_UvLed_switch(run_ch);
+                    PHY_CH[0].flag_ext_type = 1;
+                }
             }
             else if(ExtIn_Flag.Trg1 == 0 && PHY_CH[0].Uvon == 1 && PHY_CH[0].flag_ext_type == 1)
             {
@@ -1229,20 +1305,24 @@ void PHY_Ext_Uvled_Handle(void)
                 }
                 else
                 {
-                    if(Set_Mode.trg_pri.setval) //sig
+                    if(Set_Mode.trg_pri.setval) //signal priority
                     {
                         PHY_Ext_UvLed_switch(run_ch);
                     }
+                    else{}//timer priority
                 }
             }
             
             if(ExtIn_Flag.Trg2 && PHY_CH[1].Uvon == 0 && PHY_CH[1].flag_ext_type == 0)
             {
-                run_ch = 2;
-                PHY_UVLed_Select(run_ch);
-                uvled_ready_check();
-                PHY_Ext_UvLed_switch(run_ch);
-                PHY_CH[1].flag_ext_type = 1;
+                if(_check_uvled_ch_error(1) == 0)
+                {
+                    run_ch = 2;
+                    PHY_UVLed_Select(run_ch,0);
+                    uvled_ready_check();
+                    PHY_Ext_UvLed_switch(run_ch);
+                    PHY_CH[1].flag_ext_type = 1;
+                }
             }
             else if(ExtIn_Flag.Trg2 == 0 && PHY_CH[1].Uvon == 1 && PHY_CH[1].flag_ext_type == 1)
             {
@@ -1250,7 +1330,7 @@ void PHY_Ext_Uvled_Handle(void)
                 if(PHY_CH[1].SetTime == 0) PHY_Ext_UvLed_switch(run_ch);
                 else
                 {
-                    if(Set_Mode.trg_pri.setval) //sig
+                    if(Set_Mode.trg_pri.setval) //signal priority
                     {
                         PHY_Ext_UvLed_switch(run_ch);
                     }
@@ -1259,11 +1339,14 @@ void PHY_Ext_Uvled_Handle(void)
             
             if(ExtIn_Flag.Trg3 && PHY_CH[2].Uvon == 0 && PHY_CH[2].flag_ext_type == 0)
             {
-                run_ch = 3;
-                PHY_UVLed_Select(run_ch);
-                uvled_ready_check();
-                PHY_Ext_UvLed_switch(run_ch);
-                PHY_CH[2].flag_ext_type = 1;
+                if(_check_uvled_ch_error(2) == 0)
+                {
+                    run_ch = 3;
+                    PHY_UVLed_Select(run_ch,0);
+                    uvled_ready_check();
+                    PHY_Ext_UvLed_switch(run_ch);
+                    PHY_CH[2].flag_ext_type = 1;
+                }
             }
             else if(ExtIn_Flag.Trg3 == 0 && PHY_CH[2].Uvon == 1 && PHY_CH[2].flag_ext_type == 1)
             {
@@ -1271,7 +1354,7 @@ void PHY_Ext_Uvled_Handle(void)
                 if(PHY_CH[2].SetTime == 0) PHY_Ext_UvLed_switch(run_ch);
                 else
                 {
-                    if(Set_Mode.trg_pri.setval) //sig
+                    if(Set_Mode.trg_pri.setval) //signal priority
                     {
                         PHY_Ext_UvLed_switch(run_ch);
                     }
@@ -1280,11 +1363,14 @@ void PHY_Ext_Uvled_Handle(void)
             
             if(ExtIn_Flag.Trg4 && PHY_CH[3].Uvon == 0 && PHY_CH[3].flag_ext_type == 0)
             {
-                run_ch = 4;
-                PHY_UVLed_Select(run_ch);
-                uvled_ready_check();
-                PHY_Ext_UvLed_switch(run_ch);
-                PHY_CH[3].flag_ext_type = 1;
+                if(_check_uvled_ch_error(3) == 0)
+                {
+                    run_ch = 4;
+                    PHY_UVLed_Select(run_ch,0);
+                    uvled_ready_check();
+                    PHY_Ext_UvLed_switch(run_ch);
+                    PHY_CH[3].flag_ext_type = 1;
+                }
             }
             else if(ExtIn_Flag.Trg4 == 0 && PHY_CH[3].Uvon == 1 && PHY_CH[3].flag_ext_type == 1)
             {
@@ -1292,7 +1378,7 @@ void PHY_Ext_Uvled_Handle(void)
                 if(PHY_CH[3].SetTime == 0) PHY_Ext_UvLed_switch(run_ch);
                 else
                 {
-                    if(Set_Mode.trg_pri.setval) //sig
+                    if(Set_Mode.trg_pri.setval) //signal priority
                     {
                         PHY_Ext_UvLed_switch(run_ch);
                     }
@@ -1304,9 +1390,9 @@ void PHY_Ext_Uvled_Handle(void)
 
 void EXT_Input_Scan(void)
 {
-    if(rs_mode != RUN_MODE) return;
-    Ext_Trg_Scan(); /* All channels irradiation input. */
     Ext_Emg_Scan(); /* emergency stop input. */
+    if(rs_mode != RUN_MODE) return;
+    Ext_TrgAll_Scan(); /* All channels irradiation input. */
     Ext_Trg1_Scan();/* CH1 Individual irradiation input. */
     Ext_Trg2_Scan();/* CH2 Individual irradiation input. */
     Ext_Trg3_Scan();/* CH3 Individual irradiation input. */
@@ -1319,29 +1405,29 @@ u8 trg1none_cnt = 0;
 u8 trg2none_cnt = 0;
 u8 trg3none_cnt = 0;
 u8 trg4none_cnt = 0;
-void Ext_Trg_Scan(void)
+void Ext_TrgAll_Scan(void)
 {
-    if(EXT_TRG_IN == 0 && ExtIn_Now.Trg == 0)
+    if(EXT_TRG_IN == 0 && ExtIn_Now.TrgAll == 0)
     {
         trgnone_cnt = 0;
         trgcnt++;
         if(trgcnt >= SCANMAX)
         {
             trgcnt = 0;
-            ExtIn_Now.Trg = 1;
-            ExtIn_Flag.Trg = 1;
+            ExtIn_Now.TrgAll = 1;
+            ExtIn_Flag.TrgAll = 1;
         }
     }else 
     {
         trgcnt = 0;
-        if(EXT_TRG_IN == 1 && ExtIn_Now.Trg == 1) 
+        if(EXT_TRG_IN == 1 && ExtIn_Now.TrgAll == 1) 
         {
             trgnone_cnt++;
             if(trgnone_cnt >= SCANMAX)
             {
                 trgnone_cnt = 0;
-                ExtIn_Now.Trg = 0;
-                ExtIn_Flag.Trg = 0;
+                ExtIn_Now.TrgAll = 0;
+                ExtIn_Flag.TrgAll = 0;
             }
         }
         else trgnone_cnt = 0;
@@ -1506,13 +1592,13 @@ void _clear_ExtInFlag(void)
     
 void TRG_Scan(void)
 {
-    if(EXT_TRG_IN == 0 && ExtIn_Flag.Trg == 0)
+    if(EXT_TRG_IN == 0 && ExtIn_Flag.TrgAll == 0)
     {
         trgcnt++;
         if(trgcnt > CNTMAX)
         {
             trgcnt = 0;
-            ExtIn_Flag.Trg = 1;
+            ExtIn_Flag.TrgAll = 1;
             TM1639_DisplayNum(1);
             EXT_UVON_OUT(0);
         }
@@ -1521,7 +1607,7 @@ void TRG_Scan(void)
         trgcnt = 0;
         if(EXT_TRG_IN == 1) 
         {
-            ExtIn_Flag.Trg = 0;
+            ExtIn_Flag.TrgAll = 0;
             EXT_UVON_OUT(1);
         }
     }
@@ -1664,5 +1750,6 @@ void PHY_PowerOff_Handle(void)
         eeprom_save_parameter(SAVE_LEVTIME);
         flag_save_levtime = 1;
         Poweroff_Release();
+        while(1) FWDT_Clear();
     }
 } 

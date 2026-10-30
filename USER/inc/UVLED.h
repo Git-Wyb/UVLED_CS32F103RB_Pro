@@ -6,7 +6,7 @@
 #include "timer.h"
 
 void PHY_UvLed_Refresh(void);
-void PHY_UVLed_Select(u8 ch);
+void PHY_UVLed_Select(u8 ch,u8 d_sw);
 void PHY_Set_UVLed_Time(u32 time);
 void PHY_UVLed_CheckIn(void);
 u8 _check_uvled_err(void);
@@ -35,5 +35,6 @@ u8 _check_uvled_ready(void);
 void PHY_PowerOff_UvLed_Off(void);
 void PHY_Ext_UvLed_Off(void);
 u8 _check_err_extout(void);
+void _set_uvled_timer(u8 ch, u32 timer);
 
 #endif

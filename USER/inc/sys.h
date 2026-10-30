@@ -14,13 +14,19 @@ typedef signed int s32;
 typedef unsigned int u32;
 typedef float f32;
 
-#define CHNUM 4
-#define TIME_COUNT_MAX 9990 //9990*100=999s
+#define SOFT_VERSION 0x008 //Ver0.08
 
-#define CHECK_H_1VH  0x01
-#define CHECK_H_2VH  0x02
+#define CHNUM 4
+#define TIME_COUNT_MAX (u16)9990 //9990*100=999s
+#define TIME_CUMUL_MAX (u32)(0x6B49D200) //1800000000*100ms/1000 = 180000000(s) = 50000(hour)
+
+#define CHECK_H_1VH  0x02
+#define CHECK_H_2VH  0x01
 #define CHECK_H_4VH  0x00
 #define CHECK_NONE   0x03
+
+#define  DEF_TIME    100   // 10.0s
+#define  DEF_LEVEL   10    // 10%
 
 typedef enum
 {
@@ -31,6 +37,16 @@ typedef enum
     HOUR_MODE,
     MENU_MODE_SET
 }MODE;
+
+typedef enum
+{
+    SET_EIN = 1,
+    SET_PRI,
+    SET_BUR,
+    SET_OPL,
+    SET_4UH,
+    SET_232
+}MODE_SET;
 
 typedef enum
 {
@@ -96,7 +112,7 @@ typedef union{
         u8 Trg2 : 1;
         u8 Trg3 : 1;
         u8 Trg4 : 1;
-        u8 Trg : 1;
+        u8 TrgAll : 1;
         u8 Emg : 1;
         u8 b6 : 1;
         u8 b7 : 1;
@@ -143,6 +159,7 @@ typedef struct{
     u8 Ready;
     u16 Current;
     u8 flag_error_curr;
+    u8 flag_ch_err_tx;
     u8 ErrCode;
     u8 Error_Curr;
     u8 Error_Connect;
@@ -156,12 +173,16 @@ typedef struct{
 typedef enum{
     NONE_ERR = 0,
     ERR_UNUNIT = 1, //Ununited
-    ERR_Eo1 = 12,   //Emergency
+    ERR_EO1 = 12,   //Emergency
+    ERR_FE1 = 31,   //Communication ERROR
     ERR_FE2 = 32,   //EEPROM Error
+    ERR_FE3 = 33,   //Parameter EEROR
     ERR_Ld1 = 41,   //UV-LED over current
     ERR_Ld2 = 42,   //UV-LED under current
     ERR_Ld3 = 43,   //UV-LED faulty union
     ERR_Ld4 = 44,   //UV-LED cannot be identified
+    ERR_ST1 = 51,   //Address ERROE
+    ERR_ST2 = 52    //Channel select ERROE
 }ERROR_CODE;
 
 
@@ -186,6 +207,9 @@ typedef enum{
 #define flag_extlevel_on   Flag2.b0
 #define flag_low_voltage   Flag2.b1
 #define flag_save_levtime  Flag2.b2
+#define flag_tx_error      Flag2.b3
+#define flag_single_chon   Flag2.b4
+#define flag_debug_rx_done Flag2.b5
 
 extern BaseFlagStu Flag0;
 extern BaseFlagStu Flag1;
@@ -195,6 +219,7 @@ extern u16 time_ms;
 extern u8 time_10ms;
 extern u16 time_100ms;
 extern u16 time_keyscan;
+extern u8 time_usart_rx;
 extern u8 keysta_last;
 extern KEYSTU KeyStaNow;
 extern KEYSTU KeyStaFlag;

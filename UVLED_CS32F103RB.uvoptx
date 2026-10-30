@@ -153,17 +153,17 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Low_Valtage,0x0A</ItemText>
+          <ItemText>Rx_Buff,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>PHY_CH[0].Error_Curr</ItemText>
+          <ItemText>rx_size</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>PHY_CH[1].Error_Curr</ItemText>
+          <ItemText>cnt</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
@@ -224,6 +224,11 @@
           <count>14</count>
           <WinNumber>1</WinNumber>
           <ItemText>chtime,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>15</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>\\UVLED_CS32F103RB_Pro\USER/src/usart.c\Rx_Buff</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>

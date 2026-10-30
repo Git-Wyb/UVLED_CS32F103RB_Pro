@@ -872,6 +872,7 @@ void eeprom_save_parameter(EESAVE_TYPE ptype)
             {
                 if(PHY_CH[si].flag_update_cumutime)
                 {
+                    if(PHY_CH[si].pCH.CumulTime > TIME_CUMUL_MAX) PHY_CH[si].pCH.CumulTime = TIME_CUMUL_MAX;
                     ZD24C08A_PageWrite(addrbuff_cumutime[si],&PHY_CH[si].pCH.ctimbyte0,CumulTime_Length);
                     PHY_CH[si].flag_update_cumutime = 0;
                 }

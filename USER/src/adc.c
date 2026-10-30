@@ -102,13 +102,19 @@ void ADC_nvic_config(void)
     nvic_init(&ptr_nvic);
 }
 
+u8 lowcnt = 0;
 void ADC1_2_IRQHandler(void)
 {
     if(__ADC_FLAG_STATUS_GET(ADC1,ADC_FLAG_ANALOG_WDT) == SET)
     {
         __ADC_FLAG_CLEAR(ADC1, ADC_FLAG_ANALOG_WDT);
-        flag_low_voltage = 1;
-    }
+        lowcnt++;
+        if(lowcnt > 10) 
+        {
+            flag_low_voltage = 1;
+            lowcnt = 0;
+        }
+    }else lowcnt = 0;
 }
 
 static void adc1_dma_config(void)
@@ -211,8 +217,10 @@ void DMA1_Channel1_IRQHandler(void)
                             {
                                 PHY_CH[ich].undercurr_cnt = 0;
                                 PHY_CH[ich].Error_Curr = ERR_Ld2;
+                                PHY_CH[ich].ErrCode = ERR_Ld2;
                                 ExtIn_Flag.Byte &= ~(0x01 << ich); //Clear external channel input flag
                                 PHY_Uvled_PwmSwitch(ich,0);
+                                flag_tx_error = 1;
                             }
                         }
                         else if(PHY_CH[ich].Current > 2400)
@@ -223,8 +231,10 @@ void DMA1_Channel1_IRQHandler(void)
                             {
                                 PHY_CH[ich].overcurr_cnt = 0;
                                 PHY_CH[ich].Error_Curr = ERR_Ld1;
+                                PHY_CH[ich].ErrCode = ERR_Ld1;
                                 ExtIn_Flag.Byte &= ~(0x01 << ich); //Clear external channel input flag
                                 PHY_Uvled_PwmSwitch(ich,0);
+                                flag_tx_error = 1;
                             }
                         }
                         else
@@ -263,7 +273,7 @@ void uvled_current_error_handle(void)
             }
             if(ch == 3 && flag_err_emg == 0)
             {
-                Bueezr_Config(200,100,3);
+                Bueezr_Config(250,100,3);
                 flag_err_emg = 1;
             }
         }
@@ -275,7 +285,7 @@ void uvled_current_error_handle(void)
             TM1639_Display_UVLED_Char(DISPLAY_Ld1); //high
             PHY_Uvled_PwmSwitch(ch,0);
             CH_LED_switch(ch,PHY_CH[ch].Error_Curr,1);
-            Bueezr_Config(200,100,3);
+            Bueezr_Config(250,100,3);
         }
         else if(PHY_CH[ch].Error_Curr == ERR_Ld2 && PHY_CH[ch].flag_error_curr == 0) //undercurrent
         {
@@ -285,7 +295,7 @@ void uvled_current_error_handle(void)
             TM1639_Display_UVLED_Char(DISPLAY_Ld2); //low
             PHY_Uvled_PwmSwitch(ch,0);
             CH_LED_switch(ch,PHY_CH[ch].Error_Curr,1);
-            Bueezr_Config(200,100,3);
+            Bueezr_Config(250,100,3);
         }
     }
     if(run_ch > CHNUM) //ALL CH

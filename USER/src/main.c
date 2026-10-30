@@ -21,7 +21,7 @@ void TestMode_current_error_handle(void);
 void test_run_mode(void);
 void test_chuvled_out(void);
 u8 pcnt = 0;
-
+//1561-3189 = 1629
 int main(void)
 {
     Init_FWDT();
@@ -33,9 +33,8 @@ int main(void)
     SoftI2C_Init();
     Test_Mode_Handle();
     Initial_poweron_state();
-    Init_Usart1(19200);
+    Init_Usart1();
     //while(1);
-
     while(1)
     {
         FWDT_Clear();
@@ -50,16 +49,17 @@ int main(void)
         uvled_current_error_handle();
         dispaly_uvled_real_time(run_ch);
         PHY_PowerOff_Handle();
+        Usart_Data_Handle();
         Send_Logo();
     }
 }
 
 void Send_Logo(void)
 {
-    if(flag_rx_done == 1)
+    if(flag_debug_rx_done == 1)
     {
-        flag_rx_done = 0;
-        printf("\r\nHOYA UV-LED Soft Version V0.07 2026.10.23\r\n");
+        flag_debug_rx_done = 0;
+        printf("\r\nHOYA UV-LED Soft Version V0.08 2026.10.30\r\n");
     }
 }
 
@@ -409,7 +409,7 @@ void TestMode_current_error_handle(void)
             TM1639_Display_UVLED_Char(DISPLAY_Ld1); //high
             PHY_Uvled_PwmSwitch(ch,0);
             CH_LED_switch(ch,PHY_CH[ch].Error_Curr,1);
-            Bueezr_Config(200,100,3);
+            Bueezr_Config(250,100,3);
             PHY_CH[ch].Error_Curr = 0;
             PHY_CH[ch].flag_error_curr = 0;
         }
@@ -421,7 +421,7 @@ void TestMode_current_error_handle(void)
             TM1639_Display_UVLED_Char(DISPLAY_Ld2); //low
             PHY_Uvled_PwmSwitch(ch,0);
             CH_LED_switch(ch,PHY_CH[ch].Error_Curr,1);
-            Bueezr_Config(200,100,3);
+            Bueezr_Config(250,100,3);
             PHY_CH[ch].Error_Curr = 0;
             PHY_CH[ch].flag_error_curr = 0;
         }

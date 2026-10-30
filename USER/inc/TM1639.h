@@ -82,6 +82,7 @@ typedef enum
     DISPLAY_Ld4,
     DISPLAY_ERR,
     DISPLAY_000,
+    DISPLAY_H00,
     THE_END
 }DISPLAY_ENUM;
 
@@ -116,7 +117,7 @@ void TM1639_DisplayChar(uint8_t pos, char ch, uint8_t point); // pos: 0~2 (第1~3
 uint16_t TM1639_ReadKey(void);              // 读按键值（如未接按键可不用）
 uint8_t TM1639_Read_Key(void);
 void TM1639_LED_switch(LED_ENUM lednum,u8 onoff);
-void TM1639_DisplayUVtime(NUMSTU uvtime);
+void TM1639_DisplayUVtime(NUMSTU uvtime,u8 mchar);
 void TM1639_Display_UVLED_Char(DISPLAY_ENUM pos);
 void CH_LED_switch(u8 ledch,u8 err,u8 onoff);
 void TM1639_Refresh(void);

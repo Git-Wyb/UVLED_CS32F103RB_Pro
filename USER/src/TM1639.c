@@ -69,8 +69,9 @@ static const uint8_t UVLED_Font[][3] = {
     0x38,0x5E,0x4F, //Ld3
     0x38,0x5E,0x66, //Ld4
     0x79,0x77,0x77, //ERR
-    0x3F,0x3F,0x3F,
-    0x00,0x00,0x00  //空
+    0x3F,0x3F,0x3F, //000
+    0x76,0x3F,0x3F, //H00
+    0x00,0x00,0x00  //空空空
 };
 
 /* 简单微秒延时（72MHz 系统时钟下粗延时） */
@@ -262,37 +263,14 @@ void TM1639_DisplayNum(uint16_t num)
     TM1639_DisplayChar_Num(2, TM1639_Font[o]);
 }
 
-unsigned char DecimalToAscii(unsigned int dec, unsigned char *str)	//Decimal conversion to string
+void TM1639_DisplayUVtime(NUMSTU uvtime,u8 mchar)
 {
-	unsigned char i = 0;
-	unsigned char dec_str[10] = {0};
-	unsigned int decnum = 0;
-	unsigned char len = 0;
-	
-	if(dec == 0)
-	{
-		*str = '0';
-		return 1;
-	}
-	decnum = dec / 10;
-	while(decnum != 0)
-	{
-		dec_str[len++] = dec % 10 + '0';
-		dec = decnum;
-		decnum = dec / 10;
-	}
-	if(dec != 0) dec_str[len++] = dec + '0';
-	for(i=0;i<len;i++)
-	{
-		*str = dec_str[len-i-1];
-		str++;
-	}
-	return len;
-}
-
-void TM1639_DisplayUVtime(NUMSTU uvtime)
-{
-    if(uvtime.hundreds > 9) TM1639_DisplayChar(DISPLAY_ADDR0,' ',0);
+    if(mchar)
+    {
+        if(mchar == 'E')        TM1639_DisplayChar(DISPLAY_ADDR0,mchar,0);
+        else if(mchar == 'H')   TM1639_Display_UVLED_Char(DISPLAY_H00); //H
+    }
+    else if(uvtime.hundreds > 9) TM1639_DisplayChar(DISPLAY_ADDR0,' ',0);
     else
     {
         uvtime.hundreds = uvtime.hundreds + '0';

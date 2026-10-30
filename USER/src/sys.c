@@ -14,6 +14,7 @@ u16 time_ms = 0;
 u8 time_10ms = 0;
 u16 time_100ms = 0;
 u16 time_keyscan = 0;
+u8 time_usart_rx = 0;
 BaseFlagStu Flag0 = {0};
 BaseFlagStu Flag1 = {0};
 BaseFlagStu Flag2 = {0};
@@ -48,12 +49,12 @@ EXTINSTU ExtIn_Flag = {0};
 u8 Err_Emg = 0;
 u16 time_display_refresh = 0;
 
-NUMSTU display_soft_version = { //Ver0.06
-    .hundreds = 0,
+NUMSTU display_soft_version = { //Ver0.08
+    .hundreds = ((SOFT_VERSION >> 8) & 0x0F),
     .point0 = 1,
-    .decde = 0,
+    .decde = ((SOFT_VERSION >> 4) & 0x0F),
     .point1 = 0,
-    .unit = 7,
+    .unit = ((SOFT_VERSION ) & 0x0F),
     .point2 = 0
 };
 
@@ -92,31 +93,55 @@ void Init_uvch(void)
     PHY_CH[3].Uvch = 4;
 }
 
+void save_initial_param(void)
+{
+    u8 ki = 0;
+    
+    Set_Mode = Initial_ModeSet;
+    for(ki = 0; ki < CHNUM; ki++)
+    {
+        PHY_CH[ki].ReadLevel = 0;
+        PHY_CH[ki].ReadTime  = 0;
+        PHY_CH[ki].SetLevel = DEF_LEVEL;
+        PHY_CH[ki].SetTime  = DEF_TIME;
+        PHY_CH[ki].pCH.CumulTime = 0;
+        PHY_CH[ki].flag_update_cumutime = 1;
+    }
+    eeprom_save_parameter(SAVE_LEVTIME);
+    eeprom_save_parameter(SAVE_CUMUTIME);
+    eeprom_save_parameter(SAVE_PARAMETER);
+}
+
 void Initial_poweron_state(void)
 {
     u8 ki = 0;
     eeprom_read_parameter();
     for(ki = 0; ki < CHNUM; ki++)
     {
-        if(PHY_CH[ki].SetLevel > 100 || PHY_CH[ki].SetTime > TIME_COUNT_MAX 
-           || Set_Mode.ext_input.setval > 2 || Set_Mode.usart_baud.setval > 2
-           || Set_Mode.trg_pri.setval > 2 || Set_Mode.buzzer_sw.setval > 2
-           || Set_Mode.opl_not.setval > 2 || Set_Mode.H_4VH.setval > 2)
+        if(PHY_CH[ki].SetLevel > 100 || PHY_CH[ki].SetTime > TIME_COUNT_MAX)
         {
-            Set_Mode = Initial_ModeSet;
-            Set_Mode_Cache = Initial_ModeSet;
-            PHY_CH[0].SetLevel = 0;
-            PHY_CH[1].SetLevel = 0;
-            PHY_CH[2].SetLevel = 0;
-            PHY_CH[3].SetLevel = 0;
-            PHY_CH[0].SetTime = 0;
-            PHY_CH[1].SetTime = 0;
-            PHY_CH[2].SetTime = 0;
-            PHY_CH[3].SetTime = 0;
-            break;
+            PHY_CH[ki].ErrCode = ERR_FE2;
+            if(PHY_CH[ki].SetLevel > 100) PHY_CH[ki].SetLevel = DEF_LEVEL;
+            if(PHY_CH[ki].SetTime > TIME_COUNT_MAX) PHY_CH[ki].SetTime = DEF_TIME;
+            eeprom_save_parameter(SAVE_LEVTIME);
+            flag_tx_error = 1;
+        }
+        if(PHY_CH[ki].pCH.CumulTime > TIME_CUMUL_MAX)
+        {
+            PHY_CH[ki].pCH.CumulTime = 0;
+            PHY_CH[ki].flag_update_cumutime = 1;
+            eeprom_save_parameter(SAVE_CUMUTIME);
         }
     }
-    Bueezr_Config(200,100,3);
+    if(Set_Mode.ext_input.setval > 1 || Set_Mode.usart_baud.setval > 2
+       || Set_Mode.trg_pri.setval > 1 || Set_Mode.buzzer_sw.setval > 1
+       || Set_Mode.opl_not.setval > 1 || Set_Mode.H_4VH.setval > 1)
+    {
+        Set_Mode = Initial_ModeSet;
+        Set_Mode_Cache = Initial_ModeSet;
+        eeprom_save_parameter(SAVE_PARAMETER);
+    }
+    Bueezr_Config(250,100,3);
     Init_uvch();
     TM1639_Display_UVLED_Char(DISPLAY_888);
     PHY_Light_ModeLED(LED_ALL_ON);
@@ -124,7 +149,7 @@ void Initial_poweron_state(void)
     PHY_Light_ModeLED(LED_ALL_OFF);
     TM1639_Display_UVLED_Char(DISPLAY_VER);
     wait_ms(1000);
-    TM1639_DisplayUVtime(display_soft_version);
+    TM1639_DisplayUVtime(display_soft_version,0);
     wait_ms(1000);
     Initial_UVLed_CheckIn();
     PHY_Light_ModeLED(LED_RUN_MODE);
@@ -143,19 +168,29 @@ void Initial_UVLed_CheckIn(void)
         UVCh_Check.b5 = CH3_CHECK2_IN;
         UVCh_Check.b6 = CH4_CHECK1_IN;
         UVCh_Check.b7 = CH4_CHECK2_IN;
+        
     }
-    else 
+    else //H-4VH ON ch3/ch4 prohibition of use
     {
         chnum = 2;
         PHY_CH[2].Error_Connect = 1;
         PHY_CH[3].Error_Connect = 1;
+        //PHY_CH[2].ErrCode = ERR_Ld3;
+        //PHY_CH[3].ErrCode = ERR_Ld3;
     }
     
     for(ch = 0; ch < chnum; ch++)
     {
-        if(((UVCh_Check.Flag >> (ch*2)) & CHECK_NONE) == CHECK_NONE)
+        if(Set_Mode.H_4VH.setval == 0 && (((UVCh_Check.Flag >> (ch*2)) & CHECK_NONE) == CHECK_H_4VH))
+        {
+            PHY_CH[ch].ErrCode = ERR_Ld4;
+            PHY_CH[ch].Error_Connect = ERR_Ld4;
+            flag_tx_error = 1;
+        }
+        else if(((UVCh_Check.Flag >> (ch*2)) & CHECK_NONE) == CHECK_NONE)
         {
             PHY_CH[ch].Error_Connect = 1;
+            PHY_CH[ch].ErrCode = ERR_Ld3;
         }
         else if(run_ch == 0) run_ch = ch+1;
     }
@@ -166,6 +201,7 @@ void Initial_UVLed_CheckIn(void)
         PHY_Light_ErrorLED(1,1);
         PHY_Light_ErrorLED(2,1);
         PHY_Light_ErrorLED(3,1);
+        flag_tx_error = 1;
     }
-    else PHY_UVLed_Select(run_ch);
+    else PHY_UVLed_Select(run_ch,1);
 }

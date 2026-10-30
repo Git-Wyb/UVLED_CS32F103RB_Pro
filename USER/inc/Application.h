@@ -30,7 +30,7 @@ void PHY_Light_ErrorLED(u8 ch, u8 onoff);
 void PHY_Light_UvonLED(u8 ch, u8 onoff);
 void PHY_CH_Error_Display(u8 ch);
 void Test_EXT_TRG_Scan(void);
-void Ext_Trg_Scan(void);
+void Ext_TrgAll_Scan(void);
 void Ext_Emg_Scan(void);
 void Ext_Trg1_Scan(void);
 void Ext_Trg2_Scan(void);
@@ -40,5 +40,6 @@ void EXT_Input_Scan(void);
 void PHY_Ext_Uvled_Handle(void);
 void _clear_ExtInFlag(void);
 void PHY_PowerOff_Handle(void);
+void display_cumultime_hour(u16 hour, u8 mchar);
 
 #endif

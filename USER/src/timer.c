@@ -89,6 +89,7 @@ void TIM3_IRQHandler(void)
         if(time_adc_conv) time_adc_conv--;
         if(flag_adc_en && time_adc_wait) time_adc_wait--;
         if(time_display_refresh) time_display_refresh--;
+        if(time_usart_rx) time_usart_rx--;
         time_10ms++;
         if(time_10ms >= 10)
         {
@@ -144,7 +145,7 @@ void Init_Timer2(void)
     
     __TIM_ENABLE(TIM2); 
     __TIM_FUNC_ENABLE(TIM2, CH_OUTPUT);
-    tim_chcc_enable_ctrl(TIM2,TIM_CHANNEL_3,ENABLE);
+    tim_chcc_enable_ctrl(TIM2,TIM_CHANNEL_3,TIM_CHXCC_ENABLE);
 }
 
 void Buzzer_Switch(enable_state_t sta)
@@ -157,9 +158,9 @@ void Buzzer_Switch(enable_state_t sta)
     else if(sta == DISABLE && flag_buzzer_sw == 1)
     {
         flag_buzzer_sw = 0;
-        tim_chcc_enable_ctrl(TIM2,TIM_CHANNEL_3,DISABLE);
-        __TIM_FUNC_DISABLE(TIM2, CH_OUTPUT);
         __TIM_DISABLE(TIM2);
+        tim_chcc_enable_ctrl(TIM2,TIM_CHANNEL_3,TIM_CHXCC_DISABLE);
+        __TIM_FUNC_DISABLE(TIM2, CH_OUTPUT);
         gpio_mode_config(GPIOB, GPIO_PIN_10, GPIO_MODE_OUT_PP(GPIO_SPEED_HIGH));
         __GPIO_PIN_SET(GPIOB,GPIO_PIN_10);
     }
@@ -242,8 +243,8 @@ void _timer_uvon_scan(void)
             {
                 Time_uvch[ch].timer = 0;
                 if(PHY_CH[ch].Ontime < TIME_COUNT_MAX) PHY_CH[ch].Ontime++;
+                if(PHY_CH[ch].pCH.CumulTime < TIME_CUMUL_MAX) PHY_CH[ch].pCH.CumulTime++;
                 
-                PHY_CH[ch].pCH.CumulTime++;
                 if(PHY_CH[ch].Uvledon.timer) 
                 {
                     PHY_CH[ch].Uvledon.timer--;
@@ -383,7 +384,7 @@ void UV_LED_Switch(void)
             }
         }
     }
-    if(_check_uvled_option()) Bueezr_Config(200,0,0);
+    if(_check_uvled_option()) Bueezr_Config(250,0,0);
 }
  
 #if (FREQ_PWM == 50)
